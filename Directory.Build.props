@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <Version>0.1.0-preview.1</Version>
+    <Version>0.1.0-preview.2</Version>
     <Authors>TBankAcquiringNet contributors</Authors>
     <PackageProjectUrl>https://github.com/ai-iskuzhin/TBankAcquiringNet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ai-iskuzhin/TBankAcquiringNet</RepositoryUrl>

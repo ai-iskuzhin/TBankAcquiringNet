@@ -16,7 +16,7 @@
 
 Dependency-light .NET SDK libraries for T-Bank acquiring integrations.
 
-Current status: the latest preview is `0.1.0-preview.1`. `TBankAcquiringNet.Payments` is the first implemented package. Multisplit shop registration and payouts are planned as separate packages and are intentionally not packable yet.
+Current status: the latest preview is `0.1.0-preview.2`. `TBankAcquiringNet.Payments` is the first implemented package. Multisplit shop registration and payouts are planned as separate packages and are intentionally not packable yet.
 
 ## Installation
 
