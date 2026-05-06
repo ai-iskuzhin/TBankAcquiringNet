@@ -59,6 +59,27 @@ TBankAcquiringNet.Multisplit.Payouts
 
 For the first preview, only `TBankAcquiringNet.Payments` has implemented runtime behavior. The multisplit projects are intentionally marked non-packable until they have real SDK surfaces.
 
+## GitHub Actions
+
+CI runs on pull requests, pushes to `main`, and `v*` tags. It restores, builds, tests, packs `TBankAcquiringNet.Payments`, and uploads package artifacts.
+
+Release automation runs when a `v*` tag is pushed. It creates a GitHub Release, attaches generated package artifacts, and publishes to NuGet.org when the repository secret `NUGET_API_KEY` is configured.
+
+Manual publishing workflows are also available:
+
+```text
+Publish NuGet
+Publish GitHub Packages
+```
+
+For manual NuGet publishing, provide:
+
+```text
+git_ref: v0.1.0-preview.1
+version: 0.1.0-preview.1
+package: TBankAcquiringNet.Payments
+```
+
 ## Tagging
 
 Use tags that match the package version prefixed with `v`:
@@ -69,6 +90,8 @@ git push origin v0.1.0-preview.1
 ```
 
 Preview tags such as `v0.1.0-preview.1` should be marked as GitHub prereleases.
+
+If a tag was pushed before the release workflow existed, GitHub Actions will not retroactively run the tag workflow. In that case, create the GitHub Release manually from the existing tag, use the manual `Publish NuGet` workflow, or push the next preview tag after the workflow is merged.
 
 ## Publishing To NuGet
 
