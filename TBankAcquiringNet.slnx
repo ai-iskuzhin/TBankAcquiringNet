@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TBankAcquiringNet.Multisplit.Payouts/TBankAcquiringNet.Multisplit.Payouts.csproj" />
+    <Project Path="src/TBankAcquiringNet.Multisplit.Shops/TBankAcquiringNet.Multisplit.Shops.csproj" />
+    <Project Path="src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TBankAcquiringNet.Payments.Tests.Integration/TBankAcquiringNet.Payments.Tests.Integration.csproj" />
+    <Project Path="tests/TBankAcquiringNet.Payments.Tests/TBankAcquiringNet.Payments.Tests.csproj" />
+  </Folder>
+</Solution>
