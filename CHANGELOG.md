@@ -6,7 +6,11 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 ## Unreleased
 
-No changes yet.
+### Added
+
+- Added GitHub Actions workflows for CI, release creation, NuGet publishing, and GitHub Packages publishing.
+- Added repository badges, package badges, quick start, and richer package documentation to `README.md`.
+- Added `LICENSE`.
 
 ## 0.1.0-preview.1
 
