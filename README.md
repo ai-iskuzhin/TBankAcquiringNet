@@ -6,33 +6,33 @@
 [![Publish GitHub Packages](https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/publish-github-packages.yml/badge.svg)](https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/publish-github-packages.yml)
 [![License](https://img.shields.io/github/license/ai-iskuzhin/TBankAcquiringNet?style=flat-square)](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&style=flat-square)](https://dotnet.microsoft.com/)
-[![Coverage](https://img.shields.io/badge/coverage-not%20published-lightgrey?style=flat-square)](#development)
+[![Coverage](https://img.shields.io/badge/coverage-not%20published-lightgrey?style=flat-square)](#разработка)
 
-| Package | Latest Release | Downloads |
+| Пакет | Последняя версия | Загрузки |
 | :--- | :---: | :---: |
 | `TBankAcquiringNet.Payments` | [![TBankAcquiringNet.Payments NuGet](https://img.shields.io/nuget/vpre/TBankAcquiringNet.Payments?logo=nuget&style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Payments) | [![TBankAcquiringNet.Payments Downloads](https://img.shields.io/nuget/dt/TBankAcquiringNet.Payments?style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Payments) |
-| `TBankAcquiringNet.Multisplit.Shops` | planned | planned |
-| `TBankAcquiringNet.Multisplit.Payouts` | planned | planned |
+| `TBankAcquiringNet.Multisplit.Shops` | планируется | планируется |
+| `TBankAcquiringNet.Multisplit.Payouts` | планируется | планируется |
 
-Dependency-light .NET SDK libraries for T-Bank acquiring integrations.
+Легковесные .NET SDK-библиотеки для интеграций с T-Bank Acquiring.
 
-Current status: the latest preview is `0.1.0-preview.2`. `TBankAcquiringNet.Payments` is the first implemented package. Multisplit shop registration and payouts are planned as separate packages and are intentionally not packable yet.
+Текущий статус: последняя preview-версия — `0.1.0-preview.2`. `TBankAcquiringNet.Payments` — первый реализованный пакет. Регистрация магазинов multisplit и выплаты запланированы как отдельные пакеты и пока намеренно не собираются в NuGet-пакеты.
 
-## Installation
+## Установка
 
-Payments:
+Платежи:
 
 ```bash
 dotnet add package TBankAcquiringNet.Payments --prerelease
 ```
 
-For local development, reference the project directly:
+Для локальной разработки можно подключить проект напрямую:
 
 ```xml
 <ProjectReference Include="src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj" />
 ```
 
-## Quick Start
+## Быстрый старт
 
 ```csharp
 using TBankAcquiringNet.Payments;
@@ -57,13 +57,13 @@ Console.WriteLine(response.PaymentId);
 Console.WriteLine(response.PaymentURL);
 ```
 
-`TerminalKey` and `Token` are filled automatically before requests are sent. The terminal password is used locally for SHA-256 token generation and is not sent as a request field.
+`TerminalKey` и `Token` заполняются автоматически перед отправкой запроса. Пароль терминала используется локально для генерации SHA-256 token и не отправляется как поле запроса.
 
-## Payments
+## Платежи
 
-`TBankAcquiringNet.Payments` currently supports:
+`TBankAcquiringNet.Payments` сейчас поддерживает:
 
-| Method | Client API |
+| Метод | API клиента |
 | --- | --- |
 | `Init` | `InitAsync` |
 | `GetState` | `GetStateAsync` |
@@ -73,19 +73,19 @@ Console.WriteLine(response.PaymentURL);
 | `GetQr` | `GetQrAsync` |
 | `ChargeQr` | `ChargeQrAsync` |
 
-The package also includes:
+Пакет также включает:
 
-- automatic request token generation
-- notification token validation
-- typed response models and payment statuses
-- known T-Bank error-code descriptions
-- optional strict API-error exceptions
-- response metadata with optional raw response-body capture
-- conservative local request validation
+- автоматическую генерацию token для запросов
+- проверку token у платежных нотификаций
+- типизированные модели ответов и статусы платежей
+- описания известных кодов ошибок T-Bank
+- опциональные исключения для API-ошибок в строгом режиме
+- метаданные ответа с опциональным сохранением сырого тела ответа
+- консервативную локальную валидацию запросов
 
-## Notifications
+## Нотификации
 
-Use `TBankPaymentNotificationValidator` for webhook token checks:
+Для проверки token вебхуков используйте `TBankPaymentNotificationValidator`:
 
 ```csharp
 var result = TBankPaymentNotificationValidator.Validate(notification, password);
@@ -98,11 +98,11 @@ if (!result.IsValid)
 return Results.Text(TBankPaymentNotificationValidator.SuccessResponseBody);
 ```
 
-## Error Handling
+## Обработка ошибок
 
-By default, T-Bank API errors such as `Success=false` are returned as typed responses, because callers often need `ErrorCode`, `Message`, `Details`, `PaymentId`, and `OrderId` for business decisions.
+По умолчанию API-ошибки T-Bank, например `Success=false`, возвращаются как типизированные ответы, потому что вызывающему коду часто нужны `ErrorCode`, `Message`, `Details`, `PaymentId` и `OrderId` для бизнес-решений.
 
-Transport, malformed JSON, and local validation failures throw SDK exceptions:
+Транспортные ошибки, некорректный JSON и ошибки локальной валидации выбрасываются как SDK-исключения:
 
 ```csharp
 try
@@ -114,41 +114,41 @@ try
 }
 catch (TBankAcquiringTransportException ex)
 {
-    // Network, DNS, timeout, or transport-level HTTP client failure.
+    // Ошибка сети, DNS, таймаут или сбой HTTP-клиента на транспортном уровне.
 }
 catch (TBankAcquiringProtocolException ex)
 {
-    // Unexpected or invalid protocol response.
+    // Неожиданный или некорректный ответ протокола.
 }
 catch (TBankAcquiringValidationException ex)
 {
-    // Invalid local request before sending it to T-Bank.
+    // Некорректный локальный запрос до отправки в T-Bank.
 }
 ```
 
-Set `ThrowOnTBankApiError = true` to throw `TBankAcquiringApiException` for `Success=false` responses.
+Установите `ThrowOnTBankApiError = true`, чтобы при ответах `Success=false` выбрасывался `TBankAcquiringApiException`.
 
-See [docs/error-handling.md](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/error-handling.md) for the full policy.
+Полная политика описана в [docs/error-handling.md](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/error-handling.md).
 
-## Package Boundaries
+## Границы пакетов
 
-`TBankAcquiringNet.Payments` covers regular acquiring payment flows such as payment initialization, status checks, confirmation, cancellation, QR operations, and payment notifications.
+`TBankAcquiringNet.Payments` покрывает обычные acquiring-сценарии: инициализацию платежа, проверку статуса, подтверждение, отмену, QR-операции и платежные нотификации.
 
-`TBankAcquiringNet.Multisplit.Shops` will cover multisplit provider shop registration and updates, including registration authorization, `shopCode` lookup, and payout banking details.
+`TBankAcquiringNet.Multisplit.Shops` будет покрывать регистрацию и обновление магазинов провайдера в multisplit, включая авторизацию регистрации, поиск по `shopCode` и банковские реквизиты для выплат.
 
-`TBankAcquiringNet.Multisplit.Payouts` will cover multisplit payout flows, including card, SBP, and partner payouts.
+`TBankAcquiringNet.Multisplit.Payouts` будет покрывать multisplit-выплаты, включая выплаты на карту, через СБП и партнерские выплаты.
 
-Framework-specific integration packages such as `TBankAcquiringNet.AspNetCore` should be added later only if the SDK needs ASP.NET Core-specific DI, options binding, webhook endpoints, or health checks.
+Фреймворк-специфичные интеграционные пакеты, например `TBankAcquiringNet.AspNetCore`, стоит добавлять позже и только если SDK понадобятся DI, привязка options, webhook endpoints или health checks для ASP.NET Core.
 
-## Documentation
+## Документация
 
-- [Payments design](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/payments-design.md)
-- [Error handling](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/error-handling.md)
-- [Testing](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/testing.md)
+- [Дизайн Payments](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/payments-design.md)
+- [Обработка ошибок](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/error-handling.md)
+- [Тестирование](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/testing.md)
 - [Roadmap](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/roadmap.md)
-- [Release process](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/release.md)
+- [Процесс релиза](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/release.md)
 
-Copied integration reference notes live in:
+Скопированные справочные заметки по интеграциям находятся здесь:
 
 ```text
 docs/integrations/t-bank-acquiring/oplata_multisplit.md
@@ -156,21 +156,21 @@ docs/integrations/t-bank-acquiring/api_reg_upd_multisplit.md
 docs/integrations/t-bank-acquiring/vyplaty-multisplit.md
 ```
 
-## Development
+## Разработка
 
-Run all tests:
+Запустить все тесты:
 
 ```bash
 dotnet test TBankAcquiringNet.slnx
 ```
 
-Pack Payments:
+Собрать пакет Payments:
 
 ```bash
 dotnet pack src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj --configuration Release --output artifacts/packages
 ```
 
-Real integration tests are gated by environment variables:
+Реальные интеграционные тесты включаются через переменные окружения:
 
 ```bash
 export TBANK_ACQUIRING_TEST_TERMINAL_KEY="..."
