@@ -5,6 +5,7 @@
     <Project Path="src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/TBankAcquiringNet.Multisplit.Shops.Tests/TBankAcquiringNet.Multisplit.Shops.Tests.csproj" />
     <Project Path="tests/TBankAcquiringNet.Payments.Tests.Integration/TBankAcquiringNet.Payments.Tests.Integration.csproj" />
     <Project Path="tests/TBankAcquiringNet.Payments.Tests/TBankAcquiringNet.Payments.Tests.csproj" />
   </Folder>

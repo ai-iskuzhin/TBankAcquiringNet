@@ -27,7 +27,7 @@ Stable versions should use plain SemVer:
 
 ```bash
 dotnet test TBankAcquiringNet.slnx
-dotnet pack src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj --configuration Release --output artifacts/packages
+dotnet pack TBankAcquiringNet.slnx --configuration Release --output artifacts/packages
 ```
 
 5. If T-Bank terminal credentials are available, run the real payments integration test:
@@ -57,11 +57,11 @@ TBankAcquiringNet.Multisplit.Shops
 TBankAcquiringNet.Multisplit.Payouts
 ```
 
-For the first preview, only `TBankAcquiringNet.Payments` has implemented runtime behavior. The multisplit projects are intentionally marked non-packable until they have real SDK surfaces.
+`TBankAcquiringNet.Payments` and `TBankAcquiringNet.Multisplit.Shops` have implemented runtime behavior. `TBankAcquiringNet.Multisplit.Payouts` is intentionally marked non-packable until it has a real SDK surface.
 
 ## GitHub Actions
 
-CI runs on pull requests, pushes to `main`, and `v*` tags. It restores, builds, tests, packs `TBankAcquiringNet.Payments`, and uploads package artifacts.
+CI runs on pull requests, pushes to `main`, and `v*` tags. It restores, builds, tests, packs all packable SDK packages, and uploads package artifacts.
 
 Release automation runs when a `v*` tag is pushed. It creates a GitHub Release, attaches generated package artifacts, and publishes to NuGet.org when the repository secret `NUGET_API_KEY` is configured.
 
@@ -122,7 +122,7 @@ For `0.1.0-preview.1`, attach:
 TBankAcquiringNet.Payments.0.1.0-preview.1.nupkg
 ```
 
-The multisplit packages are not packable for the first preview.
+Attach all generated `.nupkg` and `.snupkg` artifacts for the released version.
 
 ## Repository Secrets
 

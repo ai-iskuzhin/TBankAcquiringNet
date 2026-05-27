@@ -31,8 +31,8 @@ jobs:
       - name: Test
         run: dotnet test TBankAcquiringNet.slnx --configuration Release --no-build --verbosity normal
 
-      - name: Pack Payments
-        run: dotnet pack src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj --configuration Release --no-build --output artifacts/packages
+      - name: Pack Packages
+        run: dotnet pack TBankAcquiringNet.slnx --configuration Release --no-build --output artifacts/packages
 
       - name: Upload Packages
         uses: actions/upload-artifact@v5

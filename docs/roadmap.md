@@ -26,11 +26,11 @@ This roadmap is a living implementation checklist. Keep it current whenever publ
 
 ## Next Package: Multisplit Shops
 
-- [ ] Make `TBankAcquiringNet.Multisplit.Shops` packable when the public SDK surface exists.
-- [ ] Add OAuth token client.
-- [ ] Add provider shop registration request/response models.
-- [ ] Add shop lookup by `shopCode`.
-- [ ] Add provider banking details update.
+- [x] Make `TBankAcquiringNet.Multisplit.Shops` packable when the public SDK surface exists.
+- [x] Add OAuth token client.
+- [x] Add provider shop registration request/response models.
+- [x] Add shop lookup by `shopCode`.
+- [x] Add provider banking details update.
 - [ ] Add integration tests gated by registration credentials and mTLS requirements.
 
 ## Later Package: Multisplit Payouts

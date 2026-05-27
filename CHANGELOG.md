@@ -8,6 +8,12 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 0.2.0-preview.1
+
+### Added
+
+- Started `TBankAcquiringNet.Multisplit.Shops` implementation with OAuth authorization, shop registration, shop lookup, banking-detail update models, typed API errors, and local HTTP mock tests.
+
 ## 0.1.0-preview.2
 
 ### Added

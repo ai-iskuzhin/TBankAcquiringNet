@@ -11,12 +11,12 @@
 | Пакет | Последняя версия | Загрузки |
 | :--- | :---: | :---: |
 | `TBankAcquiringNet.Payments` | [![TBankAcquiringNet.Payments NuGet](https://img.shields.io/nuget/vpre/TBankAcquiringNet.Payments?logo=nuget&style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Payments) | [![TBankAcquiringNet.Payments Downloads](https://img.shields.io/nuget/dt/TBankAcquiringNet.Payments?style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Payments) |
-| `TBankAcquiringNet.Multisplit.Shops` | планируется | планируется |
+| `TBankAcquiringNet.Multisplit.Shops` | [![TBankAcquiringNet.Multisplit.Shops NuGet](https://img.shields.io/nuget/vpre/TBankAcquiringNet.Multisplit.Shops?logo=nuget&style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Multisplit.Shops) | [![TBankAcquiringNet.Multisplit.Shops Downloads](https://img.shields.io/nuget/dt/TBankAcquiringNet.Multisplit.Shops?style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Multisplit.Shops) |
 | `TBankAcquiringNet.Multisplit.Payouts` | планируется | планируется |
 
 Легковесные .NET SDK-библиотеки для интеграций с T-Bank Acquiring.
 
-Текущий статус: последняя preview-версия — `0.1.0-preview.2`. `TBankAcquiringNet.Payments` — первый реализованный пакет. Регистрация магазинов multisplit и выплаты запланированы как отдельные пакеты и пока намеренно не собираются в NuGet-пакеты.
+Текущий статус: последняя preview-версия — `0.2.0-preview.1`. `TBankAcquiringNet.Payments` и `TBankAcquiringNet.Multisplit.Shops` имеют реализованную SDK-поверхность. Выплаты multisplit запланированы отдельным пакетом и пока намеренно не собираются в NuGet-пакет.
 
 ## Установка
 
@@ -24,6 +24,12 @@
 
 ```bash
 dotnet add package TBankAcquiringNet.Payments --prerelease
+```
+
+Регистрация магазинов multisplit:
+
+```bash
+dotnet add package TBankAcquiringNet.Multisplit.Shops --prerelease
 ```
 
 Для локальной разработки можно подключить проект напрямую:
@@ -134,7 +140,7 @@ catch (TBankAcquiringValidationException ex)
 
 `TBankAcquiringNet.Payments` покрывает обычные acquiring-сценарии: инициализацию платежа, проверку статуса, подтверждение, отмену, QR-операции и платежные нотификации.
 
-`TBankAcquiringNet.Multisplit.Shops` будет покрывать регистрацию и обновление магазинов провайдера в multisplit, включая авторизацию регистрации, поиск по `shopCode` и банковские реквизиты для выплат.
+`TBankAcquiringNet.Multisplit.Shops` покрывает регистрацию и обновление магазинов провайдера в multisplit, включая OAuth-авторизацию регистрации, поиск по `shopCode` и банковские реквизиты для выплат.
 
 `TBankAcquiringNet.Multisplit.Payouts` будет покрывать multisplit-выплаты, включая выплаты на карту, через СБП и партнерские выплаты.
 
