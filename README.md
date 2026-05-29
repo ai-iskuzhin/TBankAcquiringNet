@@ -16,7 +16,7 @@
 
 Легковесные .NET SDK-библиотеки для интеграций с T-Bank Acquiring.
 
-Текущий статус: последняя preview-версия — `0.2.0-preview.1`. `TBankAcquiringNet.Payments` и `TBankAcquiringNet.Multisplit.Shops` имеют реализованную SDK-поверхность. Выплаты multisplit запланированы отдельным пакетом и пока намеренно не собираются в NuGet-пакет.
+Текущий статус: последняя preview-версия — `0.2.0-preview.2`. `TBankAcquiringNet.Payments` и `TBankAcquiringNet.Multisplit.Shops` имеют реализованную SDK-поверхность. Выплаты multisplit запланированы отдельным пакетом и пока намеренно не собираются в NuGet-пакет.
 
 ## Установка
 

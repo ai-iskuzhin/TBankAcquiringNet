@@ -5,19 +5,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <Version>0.2.0-preview.1</Version>
+    <Version>0.2.0-preview.2</Version>
     <Authors>TBankAcquiringNet contributors</Authors>
     <PackageProjectUrl>https://github.com/ai-iskuzhin/TBankAcquiringNet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ai-iskuzhin/TBankAcquiringNet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>tbank;tinkoff;acquiring;payments;multisplit;payouts</PackageTags>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" Visible="false" />
-  </ItemGroup>
 </Project>

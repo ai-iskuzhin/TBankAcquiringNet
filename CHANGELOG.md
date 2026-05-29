@@ -8,6 +8,12 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 0.2.0-preview.2
+
+### Changed
+
+- Added package-specific NuGet README files for `TBankAcquiringNet.Payments` and `TBankAcquiringNet.Multisplit.Shops` instead of packing the repository README into every package.
+
 ## 0.2.0-preview.1
 
 ### Added

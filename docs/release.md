@@ -22,7 +22,7 @@ Stable versions should use plain SemVer:
 
 1. Update package version metadata in `Directory.Build.props` or in each package project being released.
 2. Update `CHANGELOG.md`.
-3. Update `README.md` if the public API, supported methods, or package list changed.
+3. Update the repository `README.md` and package-specific `src/<Package>/README.md` files if the public API, supported methods, or package list changed.
 4. Run:
 
 ```bash
