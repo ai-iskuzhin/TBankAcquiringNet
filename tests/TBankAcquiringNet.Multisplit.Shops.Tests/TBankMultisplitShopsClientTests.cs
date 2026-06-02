@@ -267,7 +267,6 @@ public sealed class TBankMultisplitShopsClientTests
             FullName = "Общество с ограниченной ответственностью Компания",
             Name = "ООО Компания",
             Inn = "3333333333",
-            Kpp = "333333333",
             Okved = "64.92.7",
             Ogrn = 333333333333,
             RegDepartment = "ФНС N1 по г. Москве",

@@ -8,7 +8,6 @@ internal static class TBankMultisplitShopsRequestValidator
         Require(request.FullName, "Full name must be provided.");
         Require(request.Name, "Name must be provided.");
         Require(request.Inn, "INN must be provided.");
-        Require(request.Kpp, "KPP must be provided.");
         Require(request.Email, "Email must be provided.");
         Require(request.SiteUrl, "Site URL must be provided.");
 

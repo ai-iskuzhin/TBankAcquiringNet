@@ -29,7 +29,7 @@ public sealed record TBankRegisterShopRequest
     public required string Inn { get; init; }
 
     /// <summary>КПП.</summary>
-    public required string Kpp { get; init; }
+    public string? Kpp { get; init; }
 
     /// <summary>ОКВЭД.</summary>
     public string? Okved { get; init; }
