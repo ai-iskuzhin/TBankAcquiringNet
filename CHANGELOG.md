@@ -8,6 +8,12 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 0.2.0-preview.3
+
+### Changed
+
+- Made `Kpp` optional in `TBankRegisterShopRequest` — KPP is not required by the T-Bank API.
+
 ## 0.2.0-preview.2
 
 ### Changed
