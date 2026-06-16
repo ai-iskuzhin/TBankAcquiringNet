@@ -3,7 +3,7 @@
 Run the regular unit test suite:
 
 ```bash
-dotnet test tests/TBankAcquiringNet.Payments.Tests/TBankAcquiringNet.Payments.Tests.csproj
+dotnet test tests/TBankAcquiringNet.Tests/TBankAcquiringNet.Tests.csproj
 ```
 
 Run all tests in the solution:
@@ -17,18 +17,18 @@ dotnet test TBankAcquiringNet.slnx
 Payments integration tests live in a separate project:
 
 ```text
-tests/TBankAcquiringNet.Payments.Tests.Integration
+tests/TBankAcquiringNet.Tests.Integration
 ```
 
 They do not store credentials in the repository. They run real HTTP calls only when the required environment variables are present.
 
-For `TBankAcquiringNet.Payments`:
+For `TBankAcquiringNet`:
 
 ```bash
 export TBANK_ACQUIRING_TEST_TERMINAL_KEY="..."
 export TBANK_ACQUIRING_TEST_PASSWORD="..."
 export TBANK_ACQUIRING_TEST_BASE_URL="https://securepay.tinkoff.ru/v2/"
-dotnet test tests/TBankAcquiringNet.Payments.Tests.Integration/TBankAcquiringNet.Payments.Tests.Integration.csproj
+dotnet test tests/TBankAcquiringNet.Tests.Integration/TBankAcquiringNet.Tests.Integration.csproj
 ```
 
 Or create a local `.env` from the committed template:
@@ -43,7 +43,7 @@ Fill in the values, then load them before running integration tests:
 set -a
 source .env
 set +a
-dotnet test tests/TBankAcquiringNet.Payments.Tests.Integration/TBankAcquiringNet.Payments.Tests.Integration.csproj
+dotnet test tests/TBankAcquiringNet.Tests.Integration/TBankAcquiringNet.Tests.Integration.csproj
 ```
 
 The integration test creates a fresh payment session with `Init`, reconciles it with `CheckOrder`, calls `GetState`, cancels the payment, and calls `GetState` again. `PaymentId` is returned by `Init` at runtime and should not be stored as configuration.

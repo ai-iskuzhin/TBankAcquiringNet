@@ -15,9 +15,9 @@ on:
         description: 'Package to publish'
         required: true
         type: choice
-        default: TBankAcquiringNet.Payments
+        default: TBankAcquiringNet
         options:
-          - TBankAcquiringNet.Payments
+          - TBankAcquiringNet
           - TBankAcquiringNet.Multisplit.Shops
 
 permissions:
@@ -54,9 +54,9 @@ jobs:
           PACKAGE: ${{ inputs.package }}
         run: |
           case "$PACKAGE" in
-            TBankAcquiringNet.Payments)
-              echo "project=src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj" >> "$GITHUB_OUTPUT"
-              echo "id=TBankAcquiringNet.Payments" >> "$GITHUB_OUTPUT"
+            TBankAcquiringNet)
+              echo "project=src/TBankAcquiringNet/TBankAcquiringNet.csproj" >> "$GITHUB_OUTPUT"
+              echo "id=TBankAcquiringNet" >> "$GITHUB_OUTPUT"
               ;;
             TBankAcquiringNet.Multisplit.Shops)
               echo "project=src/TBankAcquiringNet.Multisplit.Shops/TBankAcquiringNet.Multisplit.Shops.csproj" >> "$GITHUB_OUTPUT"

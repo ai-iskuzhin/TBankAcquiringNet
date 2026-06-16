@@ -1,6 +1,6 @@
 # Payments Package Design
 
-This note captures the proposed starting shape for `TBankAcquiringNet.Payments`.
+This note captures the proposed starting shape for `TBankAcquiringNet`.
 
 ## Goal
 

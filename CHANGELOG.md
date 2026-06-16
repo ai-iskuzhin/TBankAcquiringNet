@@ -18,7 +18,7 @@ No changes yet.
 
 ### Changed
 
-- Added package-specific NuGet README files for `TBankAcquiringNet.Payments` and `TBankAcquiringNet.Multisplit.Shops` instead of packing the repository README into every package.
+- Added package-specific NuGet README files for `TBankAcquiringNet` and `TBankAcquiringNet.Multisplit.Shops` instead of packing the repository README into every package.
 
 ## 0.2.0-preview.1
 
@@ -40,11 +40,11 @@ No changes yet.
 
 - Added repository skeleton targeting `net10.0`.
 - Added package projects:
-  - `TBankAcquiringNet.Payments`
+  - `TBankAcquiringNet`
   - `TBankAcquiringNet.Multisplit.Shops`
   - `TBankAcquiringNet.Multisplit.Payouts`
 - Added copied T-Bank integration reference docs for payments, multisplit shop registration, and payouts.
-- Added `TBankAcquiringNet.Payments` client support for:
+- Added `TBankAcquiringNet` client support for:
   - `Init`
   - `GetState`
   - `CheckOrder`

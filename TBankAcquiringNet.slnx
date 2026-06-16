@@ -1,9 +1,9 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj" />
+    <Project Path="src/TBankAcquiringNet/TBankAcquiringNet.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/TBankAcquiringNet.Payments.Tests.Integration/TBankAcquiringNet.Payments.Tests.Integration.csproj" />
-    <Project Path="tests/TBankAcquiringNet.Payments.Tests/TBankAcquiringNet.Payments.Tests.csproj" />
+    <Project Path="tests/TBankAcquiringNet.Tests.Integration/TBankAcquiringNet.Tests.Integration.csproj" />
+    <Project Path="tests/TBankAcquiringNet.Tests/TBankAcquiringNet.Tests.csproj" />
   </Folder>
 </Solution>

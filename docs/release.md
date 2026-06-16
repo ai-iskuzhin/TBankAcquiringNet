@@ -36,13 +36,13 @@ dotnet pack TBankAcquiringNet.slnx --configuration Release --output artifacts/pa
 set -a
 source .env
 set +a
-dotnet test tests/TBankAcquiringNet.Payments.Tests.Integration/TBankAcquiringNet.Payments.Tests.Integration.csproj
+dotnet test tests/TBankAcquiringNet.Tests.Integration/TBankAcquiringNet.Tests.Integration.csproj
 ```
 
 6. Inspect the generated packages:
 
 ```bash
-unzip -l artifacts/packages/TBankAcquiringNet.Payments.<version>.nupkg
+unzip -l artifacts/packages/TBankAcquiringNet.<version>.nupkg
 ```
 
 ## Package Versions
@@ -52,12 +52,12 @@ Packages can be versioned independently while the project is in preview, but ali
 Current package identities:
 
 ```text
-TBankAcquiringNet.Payments
+TBankAcquiringNet
 TBankAcquiringNet.Multisplit.Shops
 TBankAcquiringNet.Multisplit.Payouts
 ```
 
-`TBankAcquiringNet.Payments` and `TBankAcquiringNet.Multisplit.Shops` have implemented runtime behavior. `TBankAcquiringNet.Multisplit.Payouts` is intentionally marked non-packable until it has a real SDK surface.
+`TBankAcquiringNet` and `TBankAcquiringNet.Multisplit.Shops` have implemented runtime behavior. `TBankAcquiringNet.Multisplit.Payouts` is intentionally marked non-packable until it has a real SDK surface.
 
 ## GitHub Actions
 
@@ -77,7 +77,7 @@ For manual NuGet publishing, provide:
 ```text
 git_ref: v0.1.0-preview.1
 version: 0.1.0-preview.1
-package: TBankAcquiringNet.Payments
+package: TBankAcquiringNet
 ```
 
 ## Tagging
@@ -98,7 +98,7 @@ If a tag was pushed before the release workflow existed, GitHub Actions will not
 Manual publishing:
 
 ```bash
-dotnet nuget push artifacts/packages/TBankAcquiringNet.Payments.<version>.nupkg \
+dotnet nuget push artifacts/packages/TBankAcquiringNet.<version>.nupkg \
   --source https://api.nuget.org/v3/index.json \
   --api-key <NUGET_API_KEY>
 ```
@@ -119,7 +119,7 @@ Create a GitHub release from the pushed tag and attach the generated package art
 For `0.1.0-preview.1`, attach:
 
 ```text
-TBankAcquiringNet.Payments.0.1.0-preview.1.nupkg
+TBankAcquiringNet.0.1.0-preview.1.nupkg
 ```
 
 Attach all generated `.nupkg` and `.snupkg` artifacts for the released version.

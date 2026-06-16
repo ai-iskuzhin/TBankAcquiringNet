@@ -10,20 +10,20 @@
 
 | Пакет | Последняя версия | Загрузки |
 | :--- | :---: | :---: |
-| `TBankAcquiringNet.Payments` | [![TBankAcquiringNet.Payments NuGet](https://img.shields.io/nuget/vpre/TBankAcquiringNet.Payments?logo=nuget&style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Payments) | [![TBankAcquiringNet.Payments Downloads](https://img.shields.io/nuget/dt/TBankAcquiringNet.Payments?style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Payments) |
+| `TBankAcquiringNet` | [![TBankAcquiringNet NuGet](https://img.shields.io/nuget/vpre/TBankAcquiringNet?logo=nuget&style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet) | [![TBankAcquiringNet Downloads](https://img.shields.io/nuget/dt/TBankAcquiringNet?style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet) |
 | `TBankAcquiringNet.Multisplit.Shops` | [![TBankAcquiringNet.Multisplit.Shops NuGet](https://img.shields.io/nuget/vpre/TBankAcquiringNet.Multisplit.Shops?logo=nuget&style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Multisplit.Shops) | [![TBankAcquiringNet.Multisplit.Shops Downloads](https://img.shields.io/nuget/dt/TBankAcquiringNet.Multisplit.Shops?style=flat-square)](https://www.nuget.org/packages/TBankAcquiringNet.Multisplit.Shops) |
 | `TBankAcquiringNet.Multisplit.Payouts` | планируется | планируется |
 
 Легковесные .NET SDK-библиотеки для интеграций с T-Bank Acquiring.
 
-Текущий статус: последняя preview-версия — `0.2.0-preview.2`. `TBankAcquiringNet.Payments` и `TBankAcquiringNet.Multisplit.Shops` имеют реализованную SDK-поверхность. Выплаты multisplit запланированы отдельным пакетом и пока намеренно не собираются в NuGet-пакет.
+Текущий статус: последняя preview-версия — `0.2.0-preview.2`. `TBankAcquiringNet` и `TBankAcquiringNet.Multisplit.Shops` имеют реализованную SDK-поверхность. Выплаты multisplit запланированы отдельным пакетом и пока намеренно не собираются в NuGet-пакет.
 
 ## Установка
 
 Платежи:
 
 ```bash
-dotnet add package TBankAcquiringNet.Payments --prerelease
+dotnet add package TBankAcquiringNet --prerelease
 ```
 
 Регистрация магазинов multisplit:
@@ -35,13 +35,13 @@ dotnet add package TBankAcquiringNet.Multisplit.Shops --prerelease
 Для локальной разработки можно подключить проект напрямую:
 
 ```xml
-<ProjectReference Include="src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj" />
+<ProjectReference Include="src/TBankAcquiringNet/TBankAcquiringNet.csproj" />
 ```
 
 ## Быстрый старт
 
 ```csharp
-using TBankAcquiringNet.Payments;
+using TBankAcquiringNet;
 
 using var httpClient = new HttpClient();
 
@@ -67,7 +67,7 @@ Console.WriteLine(response.PaymentURL);
 
 ## Платежи
 
-`TBankAcquiringNet.Payments` сейчас поддерживает:
+`TBankAcquiringNet` сейчас поддерживает:
 
 | Метод | API клиента |
 | --- | --- |
@@ -138,7 +138,7 @@ catch (TBankAcquiringValidationException ex)
 
 ## Границы пакетов
 
-`TBankAcquiringNet.Payments` покрывает обычные acquiring-сценарии: инициализацию платежа, проверку статуса, подтверждение, отмену, QR-операции и платежные нотификации.
+`TBankAcquiringNet` покрывает обычные acquiring-сценарии: инициализацию платежа, проверку статуса, подтверждение, отмену, QR-операции и платежные нотификации.
 
 `TBankAcquiringNet.Multisplit.Shops` покрывает регистрацию и обновление магазинов провайдера в multisplit, включая OAuth-авторизацию регистрации, поиск по `shopCode` и банковские реквизиты для выплат.
 
@@ -173,7 +173,7 @@ dotnet test TBankAcquiringNet.slnx
 Собрать пакет Payments:
 
 ```bash
-dotnet pack src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj --configuration Release --output artifacts/packages
+dotnet pack src/TBankAcquiringNet/TBankAcquiringNet.csproj --configuration Release --output artifacts/packages
 ```
 
 Реальные интеграционные тесты включаются через переменные окружения:
@@ -182,5 +182,5 @@ dotnet pack src/TBankAcquiringNet.Payments/TBankAcquiringNet.Payments.csproj --c
 export TBANK_ACQUIRING_TEST_TERMINAL_KEY="..."
 export TBANK_ACQUIRING_TEST_PASSWORD="..."
 export TBANK_ACQUIRING_TEST_BASE_URL="https://securepay.tinkoff.ru/v2/"
-dotnet test tests/TBankAcquiringNet.Payments.Tests.Integration/TBankAcquiringNet.Payments.Tests.Integration.csproj
+dotnet test tests/TBankAcquiringNet.Tests.Integration/TBankAcquiringNet.Tests.Integration.csproj
 ```

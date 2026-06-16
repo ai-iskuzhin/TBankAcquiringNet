@@ -6,7 +6,7 @@ This roadmap is a living implementation checklist. Keep it current whenever publ
 
 - [x] Create repository skeleton and package split.
 - [x] Add copied T-Bank integration reference docs.
-- [x] Add `TBankAcquiringNet.Payments`.
+- [x] Add `TBankAcquiringNet`.
 - [x] Add automatic SHA-256 `Token` generation and verification helper.
 - [x] Add `InitAsync`.
 - [x] Add `GetStateAsync`.

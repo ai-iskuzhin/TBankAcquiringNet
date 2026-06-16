@@ -13,7 +13,7 @@ The SDK should provide typed clients, request/response models, signing helpers, 
 Current projects:
 
 ```text
-src/TBankAcquiringNet.Payments
+src/TBankAcquiringNet
 src/TBankAcquiringNet.Multisplit.Shops
 src/TBankAcquiringNet.Multisplit.Payouts
 ```
@@ -48,7 +48,7 @@ Use `net10.0`. Do not add legacy target frameworks unless there is an explicit p
 
 ## Payments Package Rules
 
-`TBankAcquiringNet.Payments` covers payment acquiring and multisplit payment acceptance.
+`TBankAcquiringNet` covers payment acquiring and multisplit payment acceptance.
 
 Initial scope should focus on:
 
