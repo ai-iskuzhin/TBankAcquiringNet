@@ -201,6 +201,10 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Возвращает статус возврата платежа по СБП методом GetQrState.
     /// </summary>
+    /// <remarks>
+    /// API: <see href="https://developer.tbank.ru/eacq/api/get-qr-state">GetQrState</see>.
+    /// Способы получения данных о платеже: <see href="https://developer.tbank.ru/eacq/scenarios/notification">нотификации</see>.
+    /// </remarks>
     public Task<TBankQrStateResponse> GetQrStateAsync(
         TBankQrStateRequest request,
         CancellationToken cancellationToken = default)
@@ -224,6 +228,7 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Возвращает список банков-участников СБП методом GetQrBankList.
     /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/get-qr-bank-list">GetQrBankList</see>.</remarks>
     public Task<TBankQrBankListResponse> GetQrBankListAsync(
         TBankQrBankListRequest request,
         CancellationToken cancellationToken = default)
@@ -247,6 +252,7 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Возвращает список привязанных к магазину счетов методом GetAccountQrList.
     /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/get-account-qr-list">GetAccountQrList</see>.</remarks>
     public Task<TBankAccountQrListResponse> GetAccountQrListAsync(
         TBankAccountQrListRequest request,
         CancellationToken cancellationToken = default)
@@ -270,6 +276,7 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Возвращает статус привязки счета к магазину методом GetAddAccountQrState.
     /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/get-add-account-qr-state">GetAddAccountQrState</see>.</remarks>
     public Task<TBankAddAccountQrStateResponse> GetAddAccountQrStateAsync(
         TBankAddAccountQrStateRequest request,
         CancellationToken cancellationToken = default)
@@ -293,6 +300,12 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Привязывает счет покупателя к магазину методом AddAccountQr.
     /// </summary>
+    /// <remarks>
+    /// API: <see href="https://developer.tbank.ru/eacq/api/add-account-qr">AddAccountQr</see>.
+    /// Сценарии: <see href="https://developer.tbank.ru/eacq/scenarios/payments/nonPCI/autopay/">платежи по сохраненным реквизитам через СБП</see>,
+    /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/autopay/">по сохраненным реквизитам на своей платежной форме</see>,
+    /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/sbp/">платеж через СБП на своей платежной форме</see>.
+    /// </remarks>
     public Task<TBankAddAccountQrResponse> AddAccountQrAsync(
         TBankAddAccountQrRequest request,
         CancellationToken cancellationToken = default)
@@ -316,6 +329,7 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Возвращает список банков-участников QR для возврата методом QrMembersList.
     /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/qr-members-list">QrMembersList</see>.</remarks>
     public Task<TBankQrMembersListResponse> QrMembersListAsync(
         TBankQrMembersListRequest request,
         CancellationToken cancellationToken = default)
@@ -339,6 +353,10 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Создает тестовую платежную сессию СБП методом SbpPayTest. Доступно только на тестовом терминале.
     /// </summary>
+    /// <remarks>
+    /// API: <see href="https://developer.tbank.ru/eacq/api/sbp-pay-test">SbpPayTest</see>.
+    /// Сценарий тестирования: <see href="https://developer.tbank.ru/eacq/intro/errors/test-sbp">тестовая оплата по СБП</see>.
+    /// </remarks>
     public Task<TBankSbpPayTestResponse> SbpPayTestAsync(
         TBankSbpPayTestRequest request,
         CancellationToken cancellationToken = default)
