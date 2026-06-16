@@ -1,16 +1,16 @@
 # TBankAcquiringNet
 
-Dependency-light .NET SDK package for T-Bank acquiring payment flows.
+Лёгкий .NET SDK для платёжных сценариев эквайринга T-Bank без лишних зависимостей.
 
-## Install
+## Установка
 
 ```bash
 dotnet add package TBankAcquiringNet --prerelease
 ```
 
-## Supported API
+## Поддерживаемое API
 
-`TBankAcquiringNet` currently includes typed support for:
+`TBankAcquiringNet` сейчас включает типизированную поддержку:
 
 - `Init`
 - `GetState`
@@ -19,11 +19,11 @@ dotnet add package TBankAcquiringNet --prerelease
 - `Confirm`
 - `GetQr`
 - `ChargeQr`
-- payment status notifications
-- account binding notifications
-- SHA-256 `Token` generation and notification validation
+- нотификации о статусе платежа
+- нотификации о привязке счёта
+- генерация SHA-256 `Token` и проверка нотификаций
 
-## Quick Start
+## Быстрый старт
 
 ```csharp
 using TBankAcquiringNet;
@@ -48,14 +48,14 @@ Console.WriteLine(response.PaymentId);
 Console.WriteLine(response.PaymentURL);
 ```
 
-`TerminalKey` and `Token` are filled automatically before payment requests are sent. The terminal password is used locally to generate the request token and is not sent as a request field.
+`TerminalKey` и `Token` заполняются автоматически перед отправкой платёжных запросов. Пароль терминала используется локально для генерации token запроса и не отправляется как поле запроса.
 
-## Notifications
+## Нотификации
 
 ```csharp
-var result = TBankPaymentNotificationValidator.Validate(notification, password);
+var result = TBankPaymentNotificationValidator.ValidateToken(notification, password);
 
-if (!result.IsValid)
+if (result != TBankPaymentNotificationValidationResult.Valid)
 {
     return Results.BadRequest();
 }
@@ -63,14 +63,14 @@ if (!result.IsValid)
 return Results.Text(TBankPaymentNotificationValidator.SuccessResponseBody);
 ```
 
-## Error Handling
+## Обработка ошибок
 
-API responses with `Success=false` are returned as typed response models by default so callers can inspect `ErrorCode`, `Message`, `Details`, `PaymentId`, and `OrderId`.
+Ответы API с `Success=false` по умолчанию возвращаются как типизированные модели, чтобы вызывающий код мог прочитать `ErrorCode`, `Message`, `Details`, `PaymentId` и `OrderId`.
 
-Transport, protocol, and local validation failures are thrown as SDK exceptions.
+Транспортные, протокольные и локальные ошибки валидации выбрасываются как исключения SDK.
 
-## Repository
+## Репозиторий
 
-Source, issue tracking, and full documentation live in the repository:
+Исходный код, трекер задач и полная документация — в репозитории:
 
 https://github.com/ai-iskuzhin/TBankAcquiringNet

@@ -8,6 +8,21 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 0.2.0-preview.4
+
+### Added
+
+- Added a NuGet package icon, shipped alongside each package.
+
+### Changed
+
+- Renamed the package, namespace, project, and test projects from `TBankAcquiringNet.Payments` to `TBankAcquiringNet`. **Breaking:** update `using TBankAcquiringNet.Payments;` to `using TBankAcquiringNet;` and bump the package reference to `TBankAcquiringNet`.
+- Rewrote the repository and package READMEs (in Russian) with an icon header, badges, configuration, two-stage payment, notification, and dependency-injection guidance.
+
+### Removed
+
+- Removed `TBankAcquiringNet.Multisplit.Shops` and `TBankAcquiringNet.Multisplit.Payouts` from this repository — they now live in separate repositories.
+
 ## 0.2.0-preview.3
 
 ### Changed

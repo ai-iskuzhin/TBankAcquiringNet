@@ -5,14 +5,19 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <Version>0.2.0-preview.3</Version>
+    <Version>0.2.0-preview.4</Version>
     <Authors>TBankAcquiringNet contributors</Authors>
+    <Product>TBankAcquiringNet</Product>
+    <Copyright>Copyright © TBankAcquiringNet contributors</Copyright>
     <PackageProjectUrl>https://github.com/ai-iskuzhin/TBankAcquiringNet</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ai-iskuzhin/TBankAcquiringNet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>tbank;tinkoff;acquiring;payments;multisplit;payouts</PackageTags>
+    <PackageTags>tbank;tinkoff;acquiring;payments</PackageTags>
+    <PackageReleaseNotes>See https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/CHANGELOG.md</PackageReleaseNotes>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
   </PropertyGroup>
 </Project>
