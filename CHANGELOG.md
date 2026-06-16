@@ -8,7 +8,7 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
-## 0.2.0-preview.4
+## 0.3.0-preview.1
 
 ### Added
 

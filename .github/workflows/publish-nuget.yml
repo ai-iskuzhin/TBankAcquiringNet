@@ -11,14 +11,6 @@ on:
         description: 'Package version to publish, for example 0.1.0-preview.1'
         required: true
         type: string
-      package:
-        description: 'Package to publish'
-        required: true
-        type: choice
-        default: TBankAcquiringNet
-        options:
-          - TBankAcquiringNet
-          - TBankAcquiringNet.Multisplit.Shops
 
 permissions:
   contents: read
@@ -48,29 +40,9 @@ jobs:
       - name: Test
         run: dotnet test TBankAcquiringNet.slnx --configuration Release --no-build --verbosity normal
 
-      - name: Resolve Package
-        id: package
-        env:
-          PACKAGE: ${{ inputs.package }}
-        run: |
-          case "$PACKAGE" in
-            TBankAcquiringNet)
-              echo "project=src/TBankAcquiringNet/TBankAcquiringNet.csproj" >> "$GITHUB_OUTPUT"
-              echo "id=TBankAcquiringNet" >> "$GITHUB_OUTPUT"
-              ;;
-            TBankAcquiringNet.Multisplit.Shops)
-              echo "project=src/TBankAcquiringNet.Multisplit.Shops/TBankAcquiringNet.Multisplit.Shops.csproj" >> "$GITHUB_OUTPUT"
-              echo "id=TBankAcquiringNet.Multisplit.Shops" >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              echo "Unsupported package '$PACKAGE'" >&2
-              exit 1
-              ;;
-          esac
-
       - name: Pack Requested Version
         run: >
-          dotnet pack ${{ steps.package.outputs.project }}
+          dotnet pack src/TBankAcquiringNet/TBankAcquiringNet.csproj
           --configuration Release
           --no-build
           --output artifacts/packages
@@ -80,14 +52,14 @@ jobs:
 
       - name: Publish Package
         run: >
-          dotnet nuget push artifacts/packages/${{ steps.package.outputs.id }}.${{ inputs.version }}.nupkg
+          dotnet nuget push artifacts/packages/TBankAcquiringNet.${{ inputs.version }}.nupkg
           --source https://api.nuget.org/v3/index.json
           --api-key "${{ secrets.NUGET_API_KEY }}"
           --skip-duplicate
 
       - name: Publish Symbols
         run: >
-          dotnet nuget push artifacts/packages/${{ steps.package.outputs.id }}.${{ inputs.version }}.snupkg
+          dotnet nuget push artifacts/packages/TBankAcquiringNet.${{ inputs.version }}.snupkg
           --source https://api.nuget.org/v3/index.json
           --api-key "${{ secrets.NUGET_API_KEY }}"
           --skip-duplicate
