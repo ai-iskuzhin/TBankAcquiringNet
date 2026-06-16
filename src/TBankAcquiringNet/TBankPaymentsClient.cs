@@ -229,8 +229,13 @@ public sealed class TBankPaymentsClient
 
         using (response)
         {
+#if NETSTANDARD2_0
+            var responseBody = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+#else
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken)
                 .ConfigureAwait(false);
+#endif
 
             var result = DeserializeResponse<TResponse>(method, response.StatusCode, responseBody);
             result = result with

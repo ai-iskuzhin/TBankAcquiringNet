@@ -45,9 +45,8 @@ public static class TBankToken
         values["Password"] = password;
 
         var tokenInput = string.Concat(values.OrderBy(static item => item.Key, StringComparer.Ordinal).Select(static item => item.Value));
-        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(tokenInput));
 
-        return Convert.ToHexString(hash).ToLowerInvariant();
+        return ComputeSha256Hex(tokenInput);
     }
 
     /// <summary>
@@ -66,9 +65,50 @@ public static class TBankToken
         }
 
         var actualToken = Create(payload, password);
-        return CryptographicOperations.FixedTimeEquals(
+        return FixedTimeEquals(
             Encoding.ASCII.GetBytes(actualToken),
             Encoding.ASCII.GetBytes(expectedToken.Trim().ToLowerInvariant()));
+    }
+
+    private static string ComputeSha256Hex(string input)
+    {
+        var bytes = Encoding.UTF8.GetBytes(input);
+
+#if NETSTANDARD2_0
+        using var sha = SHA256.Create();
+        var hash = sha.ComputeHash(bytes);
+
+        var builder = new StringBuilder(hash.Length * 2);
+        foreach (var b in hash)
+        {
+            builder.Append(b.ToString("x2", CultureInfo.InvariantCulture));
+        }
+
+        return builder.ToString();
+#else
+        var hash = SHA256.HashData(bytes);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+#endif
+    }
+
+    private static bool FixedTimeEquals(byte[] left, byte[] right)
+    {
+#if NETSTANDARD2_0
+        if (left.Length != right.Length)
+        {
+            return false;
+        }
+
+        var difference = 0;
+        for (var i = 0; i < left.Length; i++)
+        {
+            difference |= left[i] ^ right[i];
+        }
+
+        return difference == 0;
+#else
+        return CryptographicOperations.FixedTimeEquals(left, right);
+#endif
     }
 
     private static SortedDictionary<string, string> GetTokenValues<TPayload>(TPayload payload)

@@ -13,6 +13,7 @@ No changes yet.
 ### Added
 
 - Added a NuGet package icon, shipped alongside each package.
+- Multi-targeted `TBankAcquiringNet` to `netstandard2.0`, `net8.0`, and `net10.0`. The `netstandard2.0` asset depends on the `System.Text.Json` and `System.Net.Http.Json` packages; `net8.0`/`net10.0` use the in-box APIs.
 
 ### Changed
 

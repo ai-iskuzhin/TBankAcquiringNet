@@ -10,7 +10,7 @@
         <a href="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/ci.yml"><img src="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
         <a href="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/release.yml"><img src="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/release.yml/badge.svg" alt="Release" /></a>
         <a href="https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/LICENSE"><img src="https://img.shields.io/github/license/ai-iskuzhin/TBankAcquiringNet?style=flat-square" alt="License" /></a>
-        <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/targets-net10.0-512BD4?logo=dotnet&amp;style=flat-square" alt="Targets" /></a>
+        <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/targets-netstandard2.0%20%7C%20net8.0%20%7C%20net10.0-512BD4?logo=dotnet&amp;style=flat-square" alt="Targets" /></a>
       </p>
       <p>
         <a href="https://www.nuget.org/packages/TBankAcquiringNet"><img src="https://img.shields.io/nuget/vpre/TBankAcquiringNet?logo=nuget&amp;style=flat-square" alt="Версия NuGet" /></a>
@@ -26,7 +26,7 @@
 dotnet add package TBankAcquiringNet --prerelease
 ```
 
-Проект использует `net10.0` и встроенный `System.Text.Json`, поэтому не тянет дополнительных зависимостей во время выполнения.
+Проект поддерживает `netstandard2.0`, `net8.0` и `net10.0`. На `net8.0` и `net10.0` используется встроенный `System.Text.Json` без дополнительных зависимостей; ресурс `netstandard2.0` подтягивает пакеты `System.Text.Json` и `System.Net.Http.Json`.
 
 Для локальной разработки можно подключить проект напрямую:
 
