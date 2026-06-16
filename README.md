@@ -5,7 +5,7 @@
     </td>
     <td valign="middle">
       <h1>TBankAcquiringNet</h1>
-      <p>Лёгкий .NET SDK для <a href="https://www.tbank.ru/kassa/dev/payments/">эквайринга T-Bank (Тинькофф)</a> без лишних зависимостей — инициализация платежей, проверка статуса, подтверждение, отмена и возврат, QR-операции и проверка платёжных нотификаций.</p>
+      <p>Лёгкий .NET SDK для <a href="https://www.tbank.ru/kassa/dev/payments/">эквайринга T-Bank (Тинькофф)</a> без лишних зависимостей — инициализация платежей, проверка статуса, подтверждение, отмена и возврат, QR-операции и проверка платёжных уведомлений.</p>
       <p>
         <a href="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/ci.yml"><img src="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
         <a href="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/release.yml"><img src="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/release.yml/badge.svg" alt="Release" /></a>
@@ -20,15 +20,13 @@
   </tr>
 </table>
 
-Типизированная обёртка над HTTP API эквайринга T-Bank. SDK подписывает каждый запрос, десериализует ответы в строго типизированные модели и проверяет входящие платёжные нотификации — без зависимостей сверх BCL. Версионирование следует Semantic Versioning; текущая линейка — preview версии `0.2.0`.
-
 ## Установка
 
 ```bash
 dotnet add package TBankAcquiringNet --prerelease
 ```
 
-Пакет таргетит `net10.0` и использует встроенный `System.Text.Json`, поэтому не тянет дополнительных зависимостей во время выполнения.
+Проект использует `net10.0` и встроенный `System.Text.Json`, поэтому не тянет дополнительных зависимостей во время выполнения.
 
 Для локальной разработки можно подключить проект напрямую:
 
@@ -96,7 +94,7 @@ new TBankPaymentsClientOptions
 | `GetQr` | `GetQrAsync` | `TBankQrResponse` |
 | `ChargeQr` | `ChargeQrAsync` | `TBankChargeQrResponse` |
 
-Пакет также включает автоматическую генерацию token для запросов, проверку token платёжных нотификаций, типизированные статусы платежей, описания известных кодов ошибок T-Bank, метаданные ответа (с опциональным сохранением сырого тела) и консервативную локальную валидацию запросов.
+Пакет также включает автоматическую генерацию token для запросов, проверку token платёжных уведомлений, типизированные статусы платежей, описания известных кодов ошибок T-Bank, метаданные ответа (с опциональным сохранением сырого тела) и консервативную локальную валидацию запросов.
 
 ## Двухстадийные платежи
 
@@ -112,9 +110,9 @@ var confirm = await client.ConfirmAsync(new TBankConfirmPaymentRequest
 
 `Cancel` покрывает и отмену (до списания), и возврат (после списания); передайте `Amount` для частичного возврата.
 
-## Приём нотификаций
+## Приём уведомлений
 
-T-Bank отправляет подписанную нотификацию POST-запросом на ваш `NotificationURL`. Проверьте её token перед обработкой, затем верните ровно то тело успеха, которое ожидает API:
+T-Bank отправляет подписанное уведомление POST-запросом на ваш `NotificationURL`. Проверьте его token перед обработкой, затем верните ровно то тело успеха, которое ожидает API:
 
 ```csharp
 using TBankAcquiringNet;
@@ -133,7 +131,7 @@ if (result != TBankPaymentNotificationValidationResult.Valid)
 return Results.Text(TBankPaymentNotificationValidator.SuccessResponseBody);   // "OK"
 ```
 
-Валидатор пересчитывает token из полей нотификации и пароля терминала и сравнивает его с переданным `Token`.
+Валидатор пересчитывает token из полей уведомления и пароля терминала и сравнивает его с переданным `Token`.
 
 ## Обработка ошибок
 

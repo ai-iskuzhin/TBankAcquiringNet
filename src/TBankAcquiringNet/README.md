@@ -19,9 +19,9 @@ dotnet add package TBankAcquiringNet --prerelease
 - `Confirm`
 - `GetQr`
 - `ChargeQr`
-- нотификации о статусе платежа
-- нотификации о привязке счёта
-- генерация SHA-256 `Token` и проверка нотификаций
+- уведомления о статусе платежа
+- уведомления о привязке счёта
+- генерация SHA-256 `Token` и проверка уведомлений
 
 ## Быстрый старт
 
@@ -50,7 +50,7 @@ Console.WriteLine(response.PaymentURL);
 
 `TerminalKey` и `Token` заполняются автоматически перед отправкой платёжных запросов. Пароль терминала используется локально для генерации token запроса и не отправляется как поле запроса.
 
-## Нотификации
+## Уведомления
 
 ```csharp
 var result = TBankPaymentNotificationValidator.ValidateToken(notification, password);
