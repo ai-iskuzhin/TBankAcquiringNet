@@ -8,6 +8,19 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 0.4.0-preview.1
+
+### Added
+
+- Added SBP payment methods to `TBankPaymentsClient`: `GetQrState`, `GetQrBankList`, `QrMembersList`, `AddAccountQr`, `GetAddAccountQrState`, `GetAccountQrList`, and `SbpPayTest`, with typed request/response models and local request validation.
+- Added `CANCEL_CHECKING` to `TBankPaymentStatus`.
+
+### Changed
+
+- Typed previously string-valued fields as enums: `TBankInitPaymentRequest.PayType` (`TBankPayType`), `.Language` (`TBankLanguage`), and `.Recurrent` (`TBankRecurrent`); and the account-binding `Status` fields (`TBankAccountQrStatus`).
+- `TBankPaymentStatus` and `TBankAccountQrStatus` members now use the API's uppercase wire names (e.g. `CONFIRMED`, `PARTIAL_REFUNDED`; the `3DS_*` values map to `THREE_DS_CHECKING`/`THREE_DS_CHECKED`). **Breaking** for code referencing the old PascalCase members.
+- An unrecognized payment or account-binding status now throws `NotImplementedException` pointing to the issue tracker, instead of silently mapping to `Unknown`. Known T-Bank misspellings (`PROCCESING`, `INACITVE`) are still tolerated on read.
+
 ## 0.3.0-preview.1
 
 ### Added

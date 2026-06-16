@@ -6,28 +6,29 @@ internal static class TBankWireNames
     {
         return value switch
         {
-            TBankPaymentStatus.New => "NEW",
-            TBankPaymentStatus.Canceled => "CANCELED",
-            TBankPaymentStatus.Preauthorizing => "PREAUTHORIZING",
-            TBankPaymentStatus.FormShowed => "FORM_SHOWED",
-            TBankPaymentStatus.Authorizing => "AUTHORIZING",
-            TBankPaymentStatus.ThreeDsChecking => "3DS_CHECKING",
-            TBankPaymentStatus.ThreeDsChecked => "3DS_CHECKED",
-            TBankPaymentStatus.Authorized => "AUTHORIZED",
-            TBankPaymentStatus.PayChecking => "PAY_CHECKING",
-            TBankPaymentStatus.Confirming => "CONFIRMING",
-            TBankPaymentStatus.ConfirmChecking => "CONFIRM_CHECKING",
-            TBankPaymentStatus.Confirmed => "CONFIRMED",
-            TBankPaymentStatus.Reversing => "REVERSING",
-            TBankPaymentStatus.PartialReversed => "PARTIAL_REVERSED",
-            TBankPaymentStatus.Reversed => "REVERSED",
-            TBankPaymentStatus.Refunding => "REFUNDING",
-            TBankPaymentStatus.AsyncRefunding => "ASYNC_REFUNDING",
-            TBankPaymentStatus.PartialRefunded => "PARTIAL_REFUNDED",
-            TBankPaymentStatus.Refunded => "REFUNDED",
-            TBankPaymentStatus.DeadlineExpired => "DEADLINE_EXPIRED",
-            TBankPaymentStatus.Rejected => "REJECTED",
-            TBankPaymentStatus.AuthFail => "AUTH_FAIL",
+            TBankPaymentStatus.NEW => "NEW",
+            TBankPaymentStatus.CANCELED => "CANCELED",
+            TBankPaymentStatus.PREAUTHORIZING => "PREAUTHORIZING",
+            TBankPaymentStatus.FORM_SHOWED => "FORM_SHOWED",
+            TBankPaymentStatus.AUTHORIZING => "AUTHORIZING",
+            TBankPaymentStatus.THREE_DS_CHECKING => "3DS_CHECKING",
+            TBankPaymentStatus.THREE_DS_CHECKED => "3DS_CHECKED",
+            TBankPaymentStatus.AUTHORIZED => "AUTHORIZED",
+            TBankPaymentStatus.PAY_CHECKING => "PAY_CHECKING",
+            TBankPaymentStatus.CONFIRMING => "CONFIRMING",
+            TBankPaymentStatus.CONFIRM_CHECKING => "CONFIRM_CHECKING",
+            TBankPaymentStatus.CONFIRMED => "CONFIRMED",
+            TBankPaymentStatus.REVERSING => "REVERSING",
+            TBankPaymentStatus.PARTIAL_REVERSED => "PARTIAL_REVERSED",
+            TBankPaymentStatus.REVERSED => "REVERSED",
+            TBankPaymentStatus.REFUNDING => "REFUNDING",
+            TBankPaymentStatus.ASYNC_REFUNDING => "ASYNC_REFUNDING",
+            TBankPaymentStatus.PARTIAL_REFUNDED => "PARTIAL_REFUNDED",
+            TBankPaymentStatus.REFUNDED => "REFUNDED",
+            TBankPaymentStatus.DEADLINE_EXPIRED => "DEADLINE_EXPIRED",
+            TBankPaymentStatus.REJECTED => "REJECTED",
+            TBankPaymentStatus.AUTH_FAIL => "AUTH_FAIL",
+            TBankPaymentStatus.CANCEL_CHECKING => "CANCEL_CHECKING",
             _ => "UNKNOWN"
         };
     }
@@ -39,6 +40,47 @@ internal static class TBankWireNames
             TBankQrDataType.Payload => "PAYLOAD",
             TBankQrDataType.Image => "IMAGE",
             _ => throw new InvalidOperationException("Unknown T-Bank QR data type.")
+        };
+    }
+
+    public static string FormatPayType(TBankPayType value)
+    {
+        return value switch
+        {
+            TBankPayType.OneStage => "O",
+            TBankPayType.TwoStage => "T",
+            _ => throw new InvalidOperationException("Unknown T-Bank pay type.")
+        };
+    }
+
+    public static string FormatLanguage(TBankLanguage value)
+    {
+        return value switch
+        {
+            TBankLanguage.Ru => "ru",
+            TBankLanguage.En => "en",
+            _ => throw new InvalidOperationException("Unknown T-Bank language.")
+        };
+    }
+
+    public static string FormatRecurrent(TBankRecurrent value)
+    {
+        return value switch
+        {
+            TBankRecurrent.Yes => "Y",
+            _ => throw new InvalidOperationException("Unknown T-Bank recurrent flag.")
+        };
+    }
+
+    public static string FormatAccountQrStatus(TBankAccountQrStatus value)
+    {
+        return value switch
+        {
+            TBankAccountQrStatus.NEW => "NEW",
+            TBankAccountQrStatus.PROCESSING => "PROCESSING",
+            TBankAccountQrStatus.ACTIVE => "ACTIVE",
+            TBankAccountQrStatus.INACTIVE => "INACTIVE",
+            _ => "UNKNOWN"
         };
     }
 }

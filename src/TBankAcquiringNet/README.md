@@ -19,6 +19,7 @@ dotnet add package TBankAcquiringNet --prerelease
 - `Confirm`
 - `GetQr`
 - `ChargeQr`
+- СБП: `GetQrState`, `GetQrBankList`, `QrMembersList`, `AddAccountQr`, `GetAddAccountQrState`, `GetAccountQrList`, `SbpPayTest`
 - уведомления о статусе платежа
 - уведомления о привязке счёта
 - генерация SHA-256 `Token` и проверка уведомлений

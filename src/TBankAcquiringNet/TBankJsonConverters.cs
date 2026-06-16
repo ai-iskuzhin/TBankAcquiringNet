@@ -70,29 +70,30 @@ internal sealed class TBankPaymentStatusJsonConverter : JsonConverter<TBankPayme
 
         return value switch
         {
-            "NEW" => TBankPaymentStatus.New,
-            "CANCELED" => TBankPaymentStatus.Canceled,
-            "PREAUTHORIZING" => TBankPaymentStatus.Preauthorizing,
-            "FORM_SHOWED" => TBankPaymentStatus.FormShowed,
-            "AUTHORIZING" => TBankPaymentStatus.Authorizing,
-            "3DS_CHECKING" => TBankPaymentStatus.ThreeDsChecking,
-            "3DS_CHECKED" => TBankPaymentStatus.ThreeDsChecked,
-            "AUTHORIZED" => TBankPaymentStatus.Authorized,
-            "PAY_CHECKING" => TBankPaymentStatus.PayChecking,
-            "CONFIRMING" => TBankPaymentStatus.Confirming,
-            "CONFIRM_CHECKING" => TBankPaymentStatus.ConfirmChecking,
-            "CONFIRMED" => TBankPaymentStatus.Confirmed,
-            "REVERSING" => TBankPaymentStatus.Reversing,
-            "PARTIAL_REVERSED" => TBankPaymentStatus.PartialReversed,
-            "REVERSED" => TBankPaymentStatus.Reversed,
-            "REFUNDING" => TBankPaymentStatus.Refunding,
-            "ASYNC_REFUNDING" => TBankPaymentStatus.AsyncRefunding,
-            "PARTIAL_REFUNDED" => TBankPaymentStatus.PartialRefunded,
-            "REFUNDED" => TBankPaymentStatus.Refunded,
-            "DEADLINE_EXPIRED" => TBankPaymentStatus.DeadlineExpired,
-            "REJECTED" => TBankPaymentStatus.Rejected,
-            "AUTH_FAIL" => TBankPaymentStatus.AuthFail,
-            _ => TBankPaymentStatus.Unknown
+            "NEW" => TBankPaymentStatus.NEW,
+            "CANCELED" => TBankPaymentStatus.CANCELED,
+            "PREAUTHORIZING" => TBankPaymentStatus.PREAUTHORIZING,
+            "FORM_SHOWED" => TBankPaymentStatus.FORM_SHOWED,
+            "AUTHORIZING" => TBankPaymentStatus.AUTHORIZING,
+            "3DS_CHECKING" => TBankPaymentStatus.THREE_DS_CHECKING,
+            "3DS_CHECKED" => TBankPaymentStatus.THREE_DS_CHECKED,
+            "AUTHORIZED" => TBankPaymentStatus.AUTHORIZED,
+            "PAY_CHECKING" => TBankPaymentStatus.PAY_CHECKING,
+            "CONFIRMING" => TBankPaymentStatus.CONFIRMING,
+            "CONFIRM_CHECKING" => TBankPaymentStatus.CONFIRM_CHECKING,
+            "CONFIRMED" => TBankPaymentStatus.CONFIRMED,
+            "REVERSING" => TBankPaymentStatus.REVERSING,
+            "PARTIAL_REVERSED" => TBankPaymentStatus.PARTIAL_REVERSED,
+            "REVERSED" => TBankPaymentStatus.REVERSED,
+            "REFUNDING" => TBankPaymentStatus.REFUNDING,
+            "ASYNC_REFUNDING" => TBankPaymentStatus.ASYNC_REFUNDING,
+            "CANCEL_CHECKING" => TBankPaymentStatus.CANCEL_CHECKING,
+            "PARTIAL_REFUNDED" => TBankPaymentStatus.PARTIAL_REFUNDED,
+            "REFUNDED" => TBankPaymentStatus.REFUNDED,
+            "DEADLINE_EXPIRED" => TBankPaymentStatus.DEADLINE_EXPIRED,
+            "REJECTED" => TBankPaymentStatus.REJECTED,
+            "AUTH_FAIL" => TBankPaymentStatus.AUTH_FAIL,
+            _ => throw TBankWireParsing.UnknownEnumValue("payment status", value)
         };
     }
 
@@ -117,5 +118,84 @@ internal sealed class TBankQrDataTypeJsonConverter : JsonConverter<TBankQrDataTy
     public override void Write(Utf8JsonWriter writer, TBankQrDataType value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(TBankWireNames.FormatQrDataType(value));
+    }
+}
+
+internal sealed class TBankPayTypeJsonConverter : JsonConverter<TBankPayType>
+{
+    public override TBankPayType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        return reader.GetString() switch
+        {
+            "O" => TBankPayType.OneStage,
+            "T" => TBankPayType.TwoStage,
+            _ => throw new JsonException("Unknown T-Bank pay type.")
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, TBankPayType value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(TBankWireNames.FormatPayType(value));
+    }
+}
+
+internal sealed class TBankLanguageJsonConverter : JsonConverter<TBankLanguage>
+{
+    public override TBankLanguage Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        return reader.GetString() switch
+        {
+            "ru" => TBankLanguage.Ru,
+            "en" => TBankLanguage.En,
+            _ => throw new JsonException("Unknown T-Bank language.")
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, TBankLanguage value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(TBankWireNames.FormatLanguage(value));
+    }
+}
+
+internal sealed class TBankRecurrentJsonConverter : JsonConverter<TBankRecurrent>
+{
+    public override TBankRecurrent Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        return reader.GetString() switch
+        {
+            "Y" => TBankRecurrent.Yes,
+            _ => throw new JsonException("Unknown T-Bank recurrent flag.")
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, TBankRecurrent value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(TBankWireNames.FormatRecurrent(value));
+    }
+}
+
+internal sealed class TBankAccountQrStatusJsonConverter : JsonConverter<TBankAccountQrStatus>
+{
+    public override TBankAccountQrStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+
+        return value switch
+        {
+            "NEW" => TBankAccountQrStatus.NEW,
+            "PROCESSING" => TBankAccountQrStatus.PROCESSING,
+            // "PROCCESING" is a known T-Bank misspelling observed on the wire.
+            "PROCCESING" => TBankAccountQrStatus.PROCESSING,
+            "ACTIVE" => TBankAccountQrStatus.ACTIVE,
+            "INACTIVE" => TBankAccountQrStatus.INACTIVE,
+            // "INACITVE" is a known T-Bank misspelling in the documentation.
+            "INACITVE" => TBankAccountQrStatus.INACTIVE,
+            _ => throw TBankWireParsing.UnknownEnumValue("account binding status", value)
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, TBankAccountQrStatus value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(TBankWireNames.FormatAccountQrStatus(value));
     }
 }

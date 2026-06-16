@@ -198,6 +198,167 @@ public sealed class TBankPaymentsClient
         return SendAsync<TBankChargeQrRequest, TBankChargeQrResponse>("ChargeQr", signedRequest, cancellationToken);
     }
 
+    /// <summary>
+    /// Возвращает статус возврата платежа по СБП методом GetQrState.
+    /// </summary>
+    public Task<TBankQrStateResponse> GetQrStateAsync(
+        TBankQrStateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankQrStateRequest, TBankQrStateResponse>("GetQrState", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает список банков-участников СБП методом GetQrBankList.
+    /// </summary>
+    public Task<TBankQrBankListResponse> GetQrBankListAsync(
+        TBankQrBankListRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankQrBankListRequest, TBankQrBankListResponse>("GetQrBankList", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает список привязанных к магазину счетов методом GetAccountQrList.
+    /// </summary>
+    public Task<TBankAccountQrListResponse> GetAccountQrListAsync(
+        TBankAccountQrListRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankAccountQrListRequest, TBankAccountQrListResponse>("GetAccountQrList", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает статус привязки счета к магазину методом GetAddAccountQrState.
+    /// </summary>
+    public Task<TBankAddAccountQrStateResponse> GetAddAccountQrStateAsync(
+        TBankAddAccountQrStateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankAddAccountQrStateRequest, TBankAddAccountQrStateResponse>("GetAddAccountQrState", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Привязывает счет покупателя к магазину методом AddAccountQr.
+    /// </summary>
+    public Task<TBankAddAccountQrResponse> AddAccountQrAsync(
+        TBankAddAccountQrRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankAddAccountQrRequest, TBankAddAccountQrResponse>("AddAccountQr", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает список банков-участников QR для возврата методом QrMembersList.
+    /// </summary>
+    public Task<TBankQrMembersListResponse> QrMembersListAsync(
+        TBankQrMembersListRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankQrMembersListRequest, TBankQrMembersListResponse>("QrMembersList", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Создает тестовую платежную сессию СБП методом SbpPayTest. Доступно только на тестовом терминале.
+    /// </summary>
+    public Task<TBankSbpPayTestResponse> SbpPayTestAsync(
+        TBankSbpPayTestRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankSbpPayTestRequest, TBankSbpPayTestResponse>("SbpPayTest", signedRequest, cancellationToken);
+    }
+
     private string? CreateToken<TRequest>(TRequest request, string? suppliedToken)
     {
         if (!options.AutoGenerateToken)

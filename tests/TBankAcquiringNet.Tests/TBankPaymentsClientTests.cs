@@ -39,7 +39,7 @@ public sealed class TBankPaymentsClientTests
         Assert.Equal("https://example.test/v2/Init", handler.RequestUri?.ToString());
         Assert.Equal(HttpMethod.Post, handler.Method);
         Assert.Equal("7277900132", response.PaymentId);
-        Assert.Equal(TBankPaymentStatus.New, response.Status);
+        Assert.Equal(TBankPaymentStatus.NEW, response.Status);
 
         using var document = JsonDocument.Parse(handler.Body!);
         var root = document.RootElement;
@@ -50,6 +50,48 @@ public sealed class TBankPaymentsClientTests
         Assert.Equal("Multisplit payment", root.GetProperty("Description").GetString());
         Assert.Equal(
             "d4026f3432c8771934ca77afc4f028f7fec42350e777b66cd0e7398e6d6c7167",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task InitAsync_SerializesTypedEnumFieldsToWireValues()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "TerminalKey": "TerminalKey",
+              "Status": "NEW",
+              "PaymentId": "7277900132",
+              "OrderId": "sp123",
+              "Amount": 15000
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TerminalKey",
+            Password = "Password",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        await client.InitAsync(new TBankInitPaymentRequest
+        {
+            Amount = TBankAmount.FromMinorUnits(15000),
+            OrderId = "sp123",
+            PayType = TBankPayType.TwoStage,
+            Language = TBankLanguage.En,
+            Recurrent = TBankRecurrent.Yes
+        });
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("T", root.GetProperty("PayType").GetString());
+        Assert.Equal("en", root.GetProperty("Language").GetString());
+        Assert.Equal("Y", root.GetProperty("Recurrent").GetString());
+        Assert.Equal(
+            "3e204ffb958888570b8514144106c87713b789053d6d17ad89824c78392c1e3f",
             root.GetProperty("Token").GetString());
     }
 
@@ -81,7 +123,7 @@ public sealed class TBankPaymentsClientTests
         });
 
         Assert.Equal("https://example.test/v2/GetState", handler.RequestUri?.ToString());
-        Assert.Equal(TBankPaymentStatus.Confirmed, response.Status);
+        Assert.Equal(TBankPaymentStatus.CONFIRMED, response.Status);
 
         using var document = JsonDocument.Parse(handler.Body!);
         var root = document.RootElement;
@@ -91,6 +133,37 @@ public sealed class TBankPaymentsClientTests
         Assert.Equal(
             "03acc0a77d6e870f402a1038c1ca5d8b4a985fe76f08016a869f10f2382bd7a9",
             root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetStateAsync_ThrowsNotImplementedForUnknownStatus()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "TerminalKey": "TestB",
+              "Status": "FUTURE_STATUS",
+              "PaymentId": "20150",
+              "OrderId": "order-1",
+              "Amount": 1000
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var exception = await Assert.ThrowsAsync<NotImplementedException>(() => client.GetStateAsync(new TBankPaymentStateRequest
+        {
+            PaymentId = "20150"
+        }));
+
+        Assert.Contains("FUTURE_STATUS", exception.Message);
+        Assert.Contains("github.com/ai-iskuzhin/TBankAcquiringNet/issues/new", exception.Message);
     }
 
     [Fact]
@@ -145,9 +218,9 @@ public sealed class TBankPaymentsClientTests
         Assert.Equal("10063", response.Payments[0].PaymentId);
         Assert.Equal("1234567", response.Payments[0].RRN);
         Assert.Equal("1051", response.Payments[0].ErrorCode);
-        Assert.Equal(TBankPaymentStatus.Rejected, response.Payments[0].Status);
+        Assert.Equal(TBankPaymentStatus.REJECTED, response.Payments[0].Status);
         Assert.Equal(TBankAmount.FromMinorUnits(555), response.Payments[1].Amount);
-        Assert.Equal(TBankPaymentStatus.New, response.Payments[1].Status);
+        Assert.Equal(TBankPaymentStatus.NEW, response.Payments[1].Status);
 
         using var document = JsonDocument.Parse(handler.Body!);
         var root = document.RootElement;
@@ -190,7 +263,7 @@ public sealed class TBankPaymentsClientTests
         });
 
         Assert.Equal("https://example.test/v2/Cancel", handler.RequestUri?.ToString());
-        Assert.Equal(TBankPaymentStatus.Reversed, response.Status);
+        Assert.Equal(TBankPaymentStatus.REVERSED, response.Status);
         Assert.Equal(TBankAmount.FromMinorUnits(1000), response.OriginalAmount);
         Assert.Equal(TBankAmount.FromMinorUnits(0), response.NewAmount);
 
@@ -235,7 +308,7 @@ public sealed class TBankPaymentsClientTests
         });
 
         Assert.Equal("https://example.test/v2/Confirm", handler.RequestUri?.ToString());
-        Assert.Equal(TBankPaymentStatus.Confirmed, response.Status);
+        Assert.Equal(TBankPaymentStatus.CONFIRMED, response.Status);
         Assert.Equal(TBankAmount.FromMinorUnits(1000), response.Amount);
 
         using var document = JsonDocument.Parse(handler.Body!);
@@ -323,7 +396,7 @@ public sealed class TBankPaymentsClientTests
         });
 
         Assert.Equal("https://example.test/v2/ChargeQr", handler.RequestUri?.ToString());
-        Assert.Equal(TBankPaymentStatus.PayChecking, response.Status);
+        Assert.Equal(TBankPaymentStatus.PAY_CHECKING, response.Status);
         Assert.Equal(TBankAmount.FromMinorUnits(1000), response.Amount);
         Assert.Equal(643, response.Currency);
 
@@ -539,6 +612,315 @@ public sealed class TBankPaymentsClientTests
         }));
 
         Assert.IsType<HttpRequestException>(exception.InnerException);
+    }
+
+    [Fact]
+    public async Task GetQrStateAsync_PostsSignedRequestToGetQrStateEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "Status": "CONFIRMED",
+              "QrCancelCode": "I05043",
+              "QrCancelMessage": "У покупателя нет расчетного счета в этом банке.",
+              "OrderId": "7830122",
+              "Amount": 10000,
+              "Message": "OK"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetQrStateAsync(new TBankQrStateRequest
+        {
+            PaymentId = "20150"
+        });
+
+        Assert.Equal("https://example.test/v2/GetQrState", handler.RequestUri?.ToString());
+        Assert.Equal(TBankPaymentStatus.CONFIRMED, response.Status);
+        Assert.Equal("I05043", response.QrCancelCode);
+        Assert.Equal("7830122", response.OrderId);
+        Assert.Equal(TBankAmount.FromMinorUnits(10000), response.Amount);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("20150", root.GetProperty("PaymentId").GetString());
+        Assert.Equal(
+            "03acc0a77d6e870f402a1038c1ca5d8b4a985fe76f08016a869f10f2382bd7a9",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetQrBankListAsync_PostsSignedRequestToGetQrBankListEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "Message": "OK",
+              "BankList": [
+                { "BankId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "NspkBankId": "100000000004", "BankName": "Т-Банк", "BankLogo": "https://qr.nspk.ru/logo/bank100000000004.png", "BankOrder": 1 },
+                { "BankId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "NspkBankId": "100000000111", "BankName": "Сбербанк", "BankLogo": "https://qr.nspk.ru/logo/bank100000000111.png", "BankOrder": 2 },
+                { "BankId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "NspkBankId": "100000000005", "BankName": "Банк ВТБ", "BankLogo": "https://qr.nspk.ru/logo/bank100000000005.png", "BankOrder": 3 }
+              ]
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetQrBankListAsync(new TBankQrBankListRequest
+        {
+            ScenarioType = "qr",
+            Device = new TBankQrDevice { Type = "mobile", Os = "iOS" }
+        });
+
+        Assert.Equal("https://example.test/v2/GetQrBankList", handler.RequestUri?.ToString());
+        Assert.Equal(3, response.BankList.Count);
+        Assert.Equal("Т-Банк", response.BankList[0].BankName);
+        Assert.Equal("100000000004", response.BankList[0].NspkBankId);
+        Assert.Equal(1, response.BankList[0].BankOrder);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("qr", root.GetProperty("ScenarioType").GetString());
+        Assert.Equal("mobile", root.GetProperty("Device").GetProperty("Type").GetString());
+        Assert.Equal("iOS", root.GetProperty("Device").GetProperty("Os").GetString());
+        Assert.Equal(
+            "06f2f2eee91fc71b8a6d88e0408a2d3871d3f6422e7707192f2449fdcc254d81",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetAccountQrListAsync_PostsSignedRequestToGetAccountQrListEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "TerminalKey": "TestB",
+              "Success": true,
+              "ErrorCode": "0",
+              "Message": "OK",
+              "AccountTokens": [
+                { "RequestKey": "77520", "Status": "ACTIVE", "AccountToken": "0b67f2cae19b41809f85d5674de30a1a", "BankMemberId": "100000000004", "BankMemberName": "T-Банк" },
+                { "RequestKey": "77563", "Status": "ACTIVE", "AccountToken": "14ac4445811e8225db8ed312j4433a68", "BankMemberId": "100000000004", "BankMemberName": "T-Банк" },
+                { "RequestKey": "77644", "Status": "PROCCESING" }
+              ]
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetAccountQrListAsync(new TBankAccountQrListRequest());
+
+        Assert.Equal("https://example.test/v2/GetAccountQrList", handler.RequestUri?.ToString());
+        Assert.Equal(3, response.AccountTokens.Count);
+        Assert.Equal("77520", response.AccountTokens[0].RequestKey);
+        Assert.Equal(TBankAccountQrStatus.ACTIVE, response.AccountTokens[0].Status);
+        Assert.Equal("0b67f2cae19b41809f85d5674de30a1a", response.AccountTokens[0].AccountToken);
+        Assert.Equal(TBankAccountQrStatus.PROCESSING, response.AccountTokens[2].Status);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal(
+            "34d48df4308e9325eed6f5d3744c4379213a110183b203ed21a9d984cb965f8a",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetAddAccountQrStateAsync_PostsSignedRequestToGetAddAccountQrStateEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "TerminalKey": "TestB",
+              "RequestKey": 211258,
+              "BankMemberId": "100000000004",
+              "BankMemberName": "T-Банк",
+              "AccountToken": "a022254a5c3c46a7327c8a12cb5c8389",
+              "Success": true,
+              "Status": "ACTIVE",
+              "ErrorCode": "0",
+              "Message": "OK"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetAddAccountQrStateAsync(new TBankAddAccountQrStateRequest
+        {
+            RequestKey = "13021"
+        });
+
+        Assert.Equal("https://example.test/v2/GetAddAccountQrState", handler.RequestUri?.ToString());
+        Assert.Equal("211258", response.RequestKey);
+        Assert.Equal(TBankAccountQrStatus.ACTIVE, response.Status);
+        Assert.Equal("a022254a5c3c46a7327c8a12cb5c8389", response.AccountToken);
+        Assert.Equal("100000000004", response.BankMemberId);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("13021", root.GetProperty("RequestKey").GetString());
+        Assert.Equal(
+            "1abf20ddd4f1bd4879c07193572a5c11a0c0229cdd2abefa1bb25974879cf0a1",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task AddAccountQrAsync_PostsSignedRequestToAddAccountQrEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "TerminalKey": "TestB",
+              "Description": "bind",
+              "DataType": "PAYLOAD",
+              "Data": "https://sub.nspk.ru/AB50803R2RH0LJ2A9RTU038L6NT5RU1M?type=03",
+              "RequestKey": "ed989549-d3be-4758-95c7-22647e03f9ec",
+              "ErrorCode": "0",
+              "Success": true,
+              "Message": "OK"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.AddAccountQrAsync(new TBankAddAccountQrRequest
+        {
+            Description = "bind",
+            DataType = TBankQrDataType.Payload
+        });
+
+        Assert.Equal("https://example.test/v2/AddAccountQr", handler.RequestUri?.ToString());
+        Assert.Equal(TBankQrDataType.Payload, response.DataType);
+        Assert.StartsWith("https://sub.nspk.ru/", response.Data);
+        Assert.Equal("ed989549-d3be-4758-95c7-22647e03f9ec", response.RequestKey);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("bind", root.GetProperty("Description").GetString());
+        Assert.Equal("PAYLOAD", root.GetProperty("DataType").GetString());
+        Assert.Equal(
+            "f8fe8633cf88301c896f30f7f5c635158635946adbf7381766b34219170259b1",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task QrMembersListAsync_PostsSignedRequestToQrMembersListEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Members": [
+                { "MemberId": "1000000", "MemberName": "T-Банк", "IsPayee": true }
+              ],
+              "OrderId": "21050",
+              "Success": true,
+              "ErrorCode": "0",
+              "Message": "OK"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.QrMembersListAsync(new TBankQrMembersListRequest
+        {
+            PaymentId = "10063"
+        });
+
+        Assert.Equal("https://example.test/v2/QrMembersList", handler.RequestUri?.ToString());
+        Assert.Equal("21050", response.OrderId);
+        Assert.Single(response.Members);
+        Assert.Equal("1000000", response.Members[0].MemberId);
+        Assert.True(response.Members[0].IsPayee);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("10063", root.GetProperty("PaymentId").GetString());
+        Assert.Equal(
+            "65f05b9d7695edb5875afd98e2fec8ae8299f8a9412e8296c744942e618c912c",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task SbpPayTestAsync_PostsSignedRequestToSbpPayTestEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "Message": "OK",
+              "Details": "0"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.SbpPayTestAsync(new TBankSbpPayTestRequest
+        {
+            PaymentId = "13660",
+            IsDeadlineExpired = true,
+            IsRejected = false
+        });
+
+        Assert.Equal("https://example.test/v2/SbpPayTest", handler.RequestUri?.ToString());
+        Assert.True(response.Success);
+        Assert.Equal("OK", response.Message);
+        Assert.Equal("0", response.Details);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("13660", root.GetProperty("PaymentId").GetString());
+        Assert.True(root.GetProperty("IsDeadlineExpired").GetBoolean());
+        Assert.False(root.GetProperty("IsRejected").GetBoolean());
+        Assert.Equal(
+            "9374ff65eb8f74c8a62dbe7c36c186aaf82fa785640d7e41d944d0eb5b721dd0",
+            root.GetProperty("Token").GetString());
     }
 
     private sealed class RecordingHandler(string responseBody, HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler

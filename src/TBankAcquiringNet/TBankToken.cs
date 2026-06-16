@@ -178,6 +178,10 @@ public static class TBankToken
             {
                 TBankPaymentStatus paymentStatus => TBankWireNames.FormatPaymentStatus(paymentStatus),
                 TBankQrDataType qrDataType => TBankWireNames.FormatQrDataType(qrDataType),
+                TBankPayType payType => TBankWireNames.FormatPayType(payType),
+                TBankLanguage language => TBankWireNames.FormatLanguage(language),
+                TBankRecurrent recurrent => TBankWireNames.FormatRecurrent(recurrent),
+                TBankAccountQrStatus accountQrStatus => TBankWireNames.FormatAccountQrStatus(accountQrStatus),
                 _ => value.ToString() ?? string.Empty
             };
             return true;

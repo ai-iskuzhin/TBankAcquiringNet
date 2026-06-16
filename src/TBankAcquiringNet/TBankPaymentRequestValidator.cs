@@ -62,6 +62,59 @@ internal static class TBankPaymentRequestValidator
         }
     }
 
+    public static void Validate(TBankQrStateRequest request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+    }
+
+    public static void Validate(TBankQrBankListRequest request)
+    {
+        if (request.Device is null)
+        {
+            throw new TBankAcquiringValidationException($"{nameof(request.Device)} is required.");
+        }
+
+        RequireText(request.Device.Type, $"{nameof(request.Device)}.{nameof(request.Device.Type)}");
+        RequireText(request.Device.Os, $"{nameof(request.Device)}.{nameof(request.Device.Os)}");
+    }
+
+    public static void Validate(TBankAccountQrListRequest request)
+    {
+        // TerminalKey is populated by the client before signing; nothing else to validate.
+        _ = request;
+    }
+
+    public static void Validate(TBankAddAccountQrStateRequest request)
+    {
+        RequireText(request.RequestKey, nameof(request.RequestKey));
+    }
+
+    public static void Validate(TBankAddAccountQrRequest request)
+    {
+        RequireText(request.Description, nameof(request.Description));
+
+        if (request.Data is { Count: > 20 })
+        {
+            throw new TBankAcquiringValidationException("Data cannot contain more than 20 pairs.");
+        }
+    }
+
+    public static void Validate(TBankQrMembersListRequest request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+    }
+
+    public static void Validate(TBankSbpPayTestRequest request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+
+        if (request.IsDeadlineExpired == true && request.IsRejected == true)
+        {
+            throw new TBankAcquiringValidationException(
+                "IsDeadlineExpired and IsRejected cannot both be true.");
+        }
+    }
+
     private static void RequireText(string? value, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(value))

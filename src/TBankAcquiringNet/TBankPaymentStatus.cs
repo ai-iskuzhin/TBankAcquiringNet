@@ -1,76 +1,79 @@
 namespace TBankAcquiringNet;
 
 /// <summary>
-/// Статус платежа в T-Bank acquiring.
+/// Статус платежа в T-Bank acquiring. Имена совпадают с проводными значениями API.
 /// </summary>
 public enum TBankPaymentStatus
 {
-    /// <summary>Неизвестный или пока не смоделированный SDK статус.</summary>
-    Unknown,
+    /// <summary>Значение по умолчанию (статус не задан). API это значение не возвращает.</summary>
+    UNKNOWN,
 
     /// <summary>Платеж зарегистрирован, обработка еще не начата.</summary>
-    New,
+    NEW,
 
     /// <summary>Платеж отменен площадкой.</summary>
-    Canceled,
+    CANCELED,
 
     /// <summary>Проверяются платежные данные покупателя.</summary>
-    Preauthorizing,
+    PREAUTHORIZING,
 
     /// <summary>Покупатель был перенаправлен на платежную форму.</summary>
-    FormShowed,
+    FORM_SHOWED,
 
     /// <summary>Платеж проходит авторизацию.</summary>
-    Authorizing,
+    AUTHORIZING,
 
-    /// <summary>Начата проверка 3-D Secure.</summary>
-    ThreeDsChecking,
+    /// <summary>Начата проверка 3-D Secure (проводное значение 3DS_CHECKING).</summary>
+    THREE_DS_CHECKING,
 
-    /// <summary>Проверка 3-D Secure завершена.</summary>
-    ThreeDsChecked,
+    /// <summary>Проверка 3-D Secure завершена (проводное значение 3DS_CHECKED).</summary>
+    THREE_DS_CHECKED,
 
     /// <summary>Деньги захолдированы на карте, ожидается подтверждение.</summary>
-    Authorized,
+    AUTHORIZED,
 
     /// <summary>Платеж обрабатывается, финальный статус будет присвоен позже.</summary>
-    PayChecking,
+    PAY_CHECKING,
 
     /// <summary>Начато подтверждение списания.</summary>
-    Confirming,
-
-    /// <summary>Платеж подтвержден, деньги списаны.</summary>
-    Confirmed,
-
-    /// <summary>Начата отмена холдирования средств.</summary>
-    Reversing,
-
-    /// <summary>Выполнена частичная отмена авторизованного платежа.</summary>
-    PartialReversed,
-
-    /// <summary>Выполнена полная отмена авторизованного платежа.</summary>
-    Reversed,
-
-    /// <summary>Начат возврат денежных средств.</summary>
-    Refunding,
-
-    /// <summary>Выполнен частичный возврат подтвержденного платежа.</summary>
-    PartialRefunded,
-
-    /// <summary>Выполнен полный возврат подтвержденного платежа.</summary>
-    Refunded,
-
-    /// <summary>Срок активности платежной сессии истек.</summary>
-    DeadlineExpired,
-
-    /// <summary>Платеж отклонен банком.</summary>
-    Rejected,
-
-    /// <summary>Ошибка платежа или не пройдена проверка 3-D Secure.</summary>
-    AuthFail,
+    CONFIRMING,
 
     /// <summary>Подтверждение платежа обрабатывается, финальный статус будет присвоен позже.</summary>
-    ConfirmChecking,
+    CONFIRM_CHECKING,
+
+    /// <summary>Платеж подтвержден, деньги списаны.</summary>
+    CONFIRMED,
+
+    /// <summary>Начата отмена холдирования средств.</summary>
+    REVERSING,
+
+    /// <summary>Выполнена частичная отмена авторизованного платежа.</summary>
+    PARTIAL_REVERSED,
+
+    /// <summary>Выполнена полная отмена авторизованного платежа.</summary>
+    REVERSED,
+
+    /// <summary>Начат возврат денежных средств.</summary>
+    REFUNDING,
 
     /// <summary>Обрабатывается возврат денежных средств по QR.</summary>
-    AsyncRefunding
+    ASYNC_REFUNDING,
+
+    /// <summary>Выполнен частичный возврат подтвержденного платежа.</summary>
+    PARTIAL_REFUNDED,
+
+    /// <summary>Выполнен полный возврат подтвержденного платежа.</summary>
+    REFUNDED,
+
+    /// <summary>Выполняется проверка платежа в процессе его отмены.</summary>
+    CANCEL_CHECKING,
+
+    /// <summary>Срок активности платежной сессии истек.</summary>
+    DEADLINE_EXPIRED,
+
+    /// <summary>Платеж отклонен банком.</summary>
+    REJECTED,
+
+    /// <summary>Ошибка платежа или не пройдена проверка 3-D Secure.</summary>
+    AUTH_FAIL
 }

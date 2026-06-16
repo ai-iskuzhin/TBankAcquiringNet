@@ -13,7 +13,7 @@ public sealed class TBankPaymentNotificationTests
             TerminalKey = "1510572937960",
             OrderId = "test2",
             Success = true,
-            Status = TBankPaymentStatus.Confirmed,
+            Status = TBankPaymentStatus.CONFIRMED,
             PaymentId = "2006896",
             ErrorCode = "0",
             Amount = TBankAmount.FromMinorUnits(102120),
@@ -36,7 +36,7 @@ public sealed class TBankPaymentNotificationTests
             TerminalKey = "1510572937960",
             OrderId = "test2",
             Success = true,
-            Status = TBankPaymentStatus.Confirmed,
+            Status = TBankPaymentStatus.CONFIRMED,
             PaymentId = "2006896",
             ErrorCode = "0",
             Amount = TBankAmount.FromMinorUnits(102121),
@@ -59,7 +59,7 @@ public sealed class TBankPaymentNotificationTests
             TerminalKey = "1510572937960",
             OrderId = "test2",
             Success = true,
-            Status = TBankPaymentStatus.Confirmed,
+            Status = TBankPaymentStatus.CONFIRMED,
             PaymentId = "2006896",
             ErrorCode = "0",
             Token = ""
@@ -92,7 +92,7 @@ public sealed class TBankPaymentNotificationTests
 
         Assert.NotNull(notification);
         Assert.Equal("867911", notification.CardId);
-        Assert.Equal(TBankPaymentStatus.Confirmed, notification.Status);
+        Assert.Equal(TBankPaymentStatus.CONFIRMED, notification.Status);
         Assert.Equal(TBankAmount.FromMinorUnits(102120), notification.Amount);
     }
 

@@ -84,15 +84,27 @@ new TBankPaymentsClientOptions
 
 Каждый вызов возвращает типизированный ответ, производный от `TBankResponse`, с полями `Success`, `ErrorCode`, `Message` и `Details` (см. [Обработка ошибок](#обработка-ошибок)).
 
-| Метод T-Bank | API клиента | Возвращает |
-| --- | --- | --- |
-| `Init` | `InitAsync` | `TBankInitPaymentResponse` |
-| `GetState` | `GetStateAsync` | `TBankPaymentStateResponse` |
-| `CheckOrder` | `CheckOrderAsync` | `TBankCheckOrderResponse` |
-| `Confirm` | `ConfirmAsync` | `TBankConfirmPaymentResponse` |
-| `Cancel` | `CancelAsync` | `TBankCancelPaymentResponse` |
-| `GetQr` | `GetQrAsync` | `TBankQrResponse` |
-| `ChargeQr` | `ChargeQrAsync` | `TBankChargeQrResponse` |
+| Метод T-Bank | API клиента | Возвращает | Документация |
+| --- | --- | --- | --- |
+| `Init` | `InitAsync` | `TBankInitPaymentResponse` | [init](https://developer.tbank.ru/eacq/api/init) |
+| `GetState` | `GetStateAsync` | `TBankPaymentStateResponse` | [get-state](https://developer.tbank.ru/eacq/api/get-state) |
+| `CheckOrder` | `CheckOrderAsync` | `TBankCheckOrderResponse` | [check-order](https://developer.tbank.ru/eacq/api/check-order) |
+| `Confirm` | `ConfirmAsync` | `TBankConfirmPaymentResponse` | [confirm](https://developer.tbank.ru/eacq/api/confirm) |
+| `Cancel` | `CancelAsync` | `TBankCancelPaymentResponse` | [cancel](https://developer.tbank.ru/eacq/api/cancel) |
+| `GetQr` | `GetQrAsync` | `TBankQrResponse` | [get-qr](https://developer.tbank.ru/eacq/api/get-qr) |
+| `ChargeQr` | `ChargeQrAsync` | `TBankChargeQrResponse` | [charge-qr](https://developer.tbank.ru/eacq/api/charge-qr) |
+
+### СБП
+
+| Метод T-Bank | API клиента | Возвращает | Документация |
+| --- | --- | --- | --- |
+| `GetQrState` | `GetQrStateAsync` | `TBankQrStateResponse` | [get-qr-state](https://developer.tbank.ru/eacq/api/get-qr-state) |
+| `GetQrBankList` | `GetQrBankListAsync` | `TBankQrBankListResponse` | [get-qr-bank-list](https://developer.tbank.ru/eacq/api/get-qr-bank-list) |
+| `QrMembersList` | `QrMembersListAsync` | `TBankQrMembersListResponse` | [qr-members-list](https://developer.tbank.ru/eacq/api/qr-members-list) |
+| `AddAccountQr` | `AddAccountQrAsync` | `TBankAddAccountQrResponse` | [add-account-qr](https://developer.tbank.ru/eacq/api/add-account-qr) |
+| `GetAddAccountQrState` | `GetAddAccountQrStateAsync` | `TBankAddAccountQrStateResponse` | [get-add-account-qr-state](https://developer.tbank.ru/eacq/api/get-add-account-qr-state) |
+| `GetAccountQrList` | `GetAccountQrListAsync` | `TBankAccountQrListResponse` | [get-account-qr-list](https://developer.tbank.ru/eacq/api/get-account-qr-list) |
+| `SbpPayTest` | `SbpPayTestAsync` | `TBankSbpPayTestResponse` | [sbp-pay-test](https://developer.tbank.ru/eacq/api/sbp-pay-test) |
 
 Пакет также включает автоматическую генерацию token для запросов, проверку token платёжных уведомлений, типизированные статусы платежей, описания известных кодов ошибок T-Bank, метаданные ответа (с опциональным сохранением сырого тела) и консервативную локальную валидацию запросов.
 

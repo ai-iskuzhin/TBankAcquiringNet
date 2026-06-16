@@ -45,13 +45,16 @@ public sealed record TBankInitPaymentRequest
     public string? CustomerKey { get; init; }
 
     /// <summary>Признак регистрации автоплатежа.</summary>
-    public string? Recurrent { get; init; }
+    [JsonConverter(typeof(TBankRecurrentJsonConverter))]
+    public TBankRecurrent? Recurrent { get; init; }
 
-    /// <summary>Тип оплаты.</summary>
-    public string? PayType { get; init; }
+    /// <summary>Тип оплаты. Если не задан, используется настройка терминала.</summary>
+    [JsonConverter(typeof(TBankPayTypeJsonConverter))]
+    public TBankPayType? PayType { get; init; }
 
-    /// <summary>Язык платежной формы.</summary>
-    public string? Language { get; init; }
+    /// <summary>Язык платежной формы. По умолчанию ru.</summary>
+    [JsonConverter(typeof(TBankLanguageJsonConverter))]
+    public TBankLanguage? Language { get; init; }
 
     /// <summary>URL для HTTP-нотификаций.</summary>
     public Uri? NotificationURL { get; init; }
@@ -169,6 +172,143 @@ public sealed record TBankQrRequest
 
     /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
     public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос GetQrState для получения статуса возврата платежа по СБП.
+/// </summary>
+public sealed record TBankQrStateRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Идентификатор платежа в T-Bank.</summary>
+    public required string PaymentId { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос GetQrBankList для получения списка банков-участников СБП.
+/// </summary>
+public sealed record TBankQrBankListRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Тип сценария оплаты: qr — оплата, sub — привязка счета. По умолчанию qr.</summary>
+    public string? ScenarioType { get; init; }
+
+    /// <summary>Тип и ОС устройства покупателя.</summary>
+    public required TBankQrDevice Device { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Тип и ОС устройства покупателя для запроса GetQrBankList.
+/// </summary>
+public sealed record TBankQrDevice
+{
+    /// <summary>Тип устройства: desktop или mobile.</summary>
+    public required string Type { get; init; }
+
+    /// <summary>ОС устройства, например iOS или Android.</summary>
+    public required string Os { get; init; }
+}
+
+/// <summary>
+/// Запрос GetAccountQrList для получения списка привязанных к магазину счетов.
+/// </summary>
+public sealed record TBankAccountQrListRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос AddAccountQr для привязки счета покупателя к магазину.
+/// </summary>
+public sealed record TBankAddAccountQrRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Подробное описание деталей заказа.</summary>
+    public required string Description { get; init; }
+
+    /// <summary>Тип возвращаемых данных: PAYLOAD или IMAGE. По умолчанию PAYLOAD.</summary>
+    [JsonConverter(typeof(TBankQrDataTypeJsonConverter))]
+    public TBankQrDataType? DataType { get; init; }
+
+    /// <summary>Внутренний идентификатор выбранного банка. Передается только для DataType = PAYLOAD.</summary>
+    public string? BankId { get; init; }
+
+    /// <summary>Дополнительные параметры платежной страницы в виде ключ:значение (не более 20 пар).</summary>
+    public IReadOnlyDictionary<string, string?>? Data { get; init; }
+
+    /// <summary>Срок жизни ссылки или динамического QR.</summary>
+    public DateTimeOffset? RedirectDueDate { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос GetAddAccountQrState для получения статуса привязки счета к магазину.
+/// </summary>
+public sealed record TBankAddAccountQrStateRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Идентификатор запроса на привязку счета.</summary>
+    public required string RequestKey { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос QrMembersList для получения списка банков-участников QR для возврата.
+/// </summary>
+public sealed record TBankQrMembersListRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Идентификатор платежа в T-Bank.</summary>
+    public required string PaymentId { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос SbpPayTest для создания тестовой платежной сессии СБП.
+/// </summary>
+/// <remarks>Работает только на тестовом терминале и эмулирует сценарии проведения платежа.</remarks>
+public sealed record TBankSbpPayTestRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Идентификатор платежа в T-Bank.</summary>
+    public required string PaymentId { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+
+    /// <summary>Эмулировать отказ банка по таймауту. Нельзя использовать вместе с IsRejected.</summary>
+    public bool? IsDeadlineExpired { get; init; }
+
+    /// <summary>Эмулировать отказ банка в проведении платежа. Нельзя использовать вместе с IsDeadlineExpired.</summary>
+    public bool? IsRejected { get; init; }
 }
 
 /// <summary>
