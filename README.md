@@ -13,7 +13,7 @@
         <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/targets-netstandard2.0%20%7C%20net8.0%20%7C%20net10.0-512BD4?logo=dotnet&amp;style=flat-square" alt="Targets" /></a>
       </p>
       <p>
-        <a href="https://www.nuget.org/packages/TBankAcquiringNet"><img src="https://img.shields.io/nuget/vpre/TBankAcquiringNet?logo=nuget&amp;style=flat-square" alt="Версия NuGet" /></a>
+        <a href="https://www.nuget.org/packages/TBankAcquiringNet"><img src="https://img.shields.io/nuget/v/TBankAcquiringNet?logo=nuget&amp;style=flat-square" alt="Версия NuGet" /></a>
         <a href="https://www.nuget.org/packages/TBankAcquiringNet"><img src="https://img.shields.io/nuget/dt/TBankAcquiringNet?style=flat-square" alt="Загрузки NuGet" /></a>
       </p>
     </td>
@@ -23,7 +23,7 @@
 ## Установка
 
 ```bash
-dotnet add package TBankAcquiringNet --prerelease
+dotnet add package TBankAcquiringNet
 ```
 
 Проект поддерживает `netstandard2.0`, `net8.0` и `net10.0`. На `net8.0` и `net10.0` используется встроенный `System.Text.Json` без дополнительных зависимостей; ресурс `netstandard2.0` подтягивает пакеты `System.Text.Json` и `System.Net.Http.Json`.

@@ -8,6 +8,10 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 1.0.0
+
+First stable release. Card payment and SBP payment flows are validated against real integrations, and the public API is now stable under Semantic Versioning. This release contains no API changes over `0.4.0-preview.1`.
+
 ## 0.4.0-preview.1
 
 ### Added

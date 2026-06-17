@@ -5,7 +5,7 @@
 ## Установка
 
 ```bash
-dotnet add package TBankAcquiringNet --prerelease
+dotnet add package TBankAcquiringNet
 ```
 
 ## Поддерживаемое API
