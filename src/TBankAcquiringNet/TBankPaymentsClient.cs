@@ -1,4 +1,6 @@
 using System.Net.Http.Json;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
@@ -11,6 +13,7 @@ namespace TBankAcquiringNet;
 public sealed class TBankPaymentsClient
 {
     private static readonly JsonSerializerOptions JsonOptions = CreateJsonOptions();
+    private static readonly string UserAgent = BuildUserAgent();
 
     private readonly HttpClient httpClient;
     private readonly TBankPaymentsClientOptions options;
@@ -398,7 +401,13 @@ public sealed class TBankPaymentsClient
 
         try
         {
-            response = await httpClient.PostAsJsonAsync(endpoint, request, JsonOptions, cancellationToken)
+            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = JsonContent.Create(request, options: JsonOptions)
+            };
+            httpRequest.Headers.UserAgent.ParseAdd(UserAgent);
+
+            response = await httpClient.SendAsync(httpRequest, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (HttpRequestException exception)
@@ -502,6 +511,23 @@ public sealed class TBankPaymentsClient
             "(\"(?:Token|Password|CardData|CVV|DigestValue|SignatureValue)\"\\s*:\\s*\")([^\"]*)(\")",
             "$1***REDACTED***$3",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+    }
+
+    private static string BuildUserAgent()
+    {
+        var assembly = typeof(TBankPaymentsClient).Assembly;
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+            ?? assembly.GetName().Version?.ToString()
+            ?? "0.0.0";
+
+        // Strip Source Link build metadata (e.g. "1.0.0+abc123") from the product version.
+        var metadataSeparator = version.IndexOf('+');
+        if (metadataSeparator >= 0)
+        {
+            version = version.Substring(0, metadataSeparator);
+        }
+
+        return $"TBankAcquiringNet/{version} ({RuntimeInformation.FrameworkDescription})";
     }
 
     private static JsonSerializerOptions CreateJsonOptions()

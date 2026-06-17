@@ -923,6 +923,38 @@ public sealed class TBankPaymentsClientTests
             root.GetProperty("Token").GetString());
     }
 
+    [Fact]
+    public async Task InitAsync_SendsVersionedUserAgentHeader()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "TerminalKey": "TerminalKey",
+              "Status": "NEW",
+              "PaymentId": "7277900132",
+              "OrderId": "sp123",
+              "Amount": 15000
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TerminalKey",
+            Password = "Password",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        await client.InitAsync(new TBankInitPaymentRequest
+        {
+            Amount = TBankAmount.FromMinorUnits(15000),
+            OrderId = "sp123"
+        });
+
+        Assert.StartsWith("TBankAcquiringNet/", handler.UserAgent);
+        Assert.Matches(@"^TBankAcquiringNet/\d+\.\d+\.\d+", handler.UserAgent!);
+    }
+
     private sealed class RecordingHandler(string responseBody, HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
     {
         public Dictionary<string, string> ResponseHeaders { get; } = [];
@@ -935,10 +967,13 @@ public sealed class TBankPaymentsClientTests
 
         public string? Body { get; private set; }
 
+        public string? UserAgent { get; private set; }
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             RequestUri = request.RequestUri;
             Method = request.Method;
+            UserAgent = request.Headers.UserAgent.ToString();
             Body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
 
             var response = new HttpResponseMessage(statusCode)
