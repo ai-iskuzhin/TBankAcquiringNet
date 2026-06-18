@@ -10,6 +10,10 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 - Send a versioned `User-Agent` header on every request (e.g. `TBankAcquiringNet/1.0.0 (.NET 8.0)`). The version is read from the assembly and the header is set per request, so a caller-provided `HttpClient` is not mutated.
 
+### Changed
+
+- Lowered the `netstandard2.0` dependency floor from `9.0.0` to `System.Text.Json` `8.0.6` and `System.Net.Http.Json` `8.0.1` (current LTS, security-patched), so integrators are not forced onto the `9.0.0` graph. `net8.0`/`net10.0` are unaffected (in-box APIs, no package dependency).
+
 ## 1.0.0
 
 First stable release. Card payment and SBP payment flows are validated against real integrations, and the public API is now stable under Semantic Versioning. This release contains no API changes over `0.4.0-preview.1`.

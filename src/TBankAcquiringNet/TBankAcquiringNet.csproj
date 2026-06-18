@@ -20,10 +20,15 @@
     <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- System.Text.Json and HttpClient JSON helpers are in-box on net8.0+ but need packages on netstandard2.0. -->
+  <!--
+    System.Text.Json and HttpClient JSON helpers are in-box on net8.0+ but need packages on
+    netstandard2.0. These versions are a minimum floor (NuGet resolves upward), so we target the
+    lowest still-supported, security-patched LTS line to avoid forcing integrators onto newer
+    versions than they need. None of the APIs we use require a version newer than this.
+  -->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Text.Json" Version="9.0.0" />
-    <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.6" />
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup Condition="Exists('../../assets/icon.png')">
