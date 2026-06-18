@@ -26,12 +26,22 @@
 dotnet add package TBankAcquiringNet
 ```
 
-Проект поддерживает `netstandard2.0`, `net8.0` и `net10.0`. На `net8.0` и `net10.0` используется встроенный `System.Text.Json` без дополнительных зависимостей; ресурс `netstandard2.0` подтягивает пакеты `System.Text.Json` и `System.Net.Http.Json`.
+Проект поддерживает `netstandard2.0`, `net8.0` и `net10.0`. На `net8.0` и `net10.0` используется встроенный `System.Text.Json` без дополнительных зависимостей. Ресурс `netstandard2.0` подтягивает пакеты `System.Text.Json` и `System.Net.Http.Json` и работает на .NET Framework 4.6.2+, .NET Core 2.0+, Mono и Unity.
 
 Для локальной разработки можно подключить проект напрямую:
 
 ```xml
 <ProjectReference Include="src/TBankAcquiringNet/TBankAcquiringNet.csproj" />
+```
+
+### Использование на .NET Framework
+
+На .NET Framework транзитивные зависимости `System.Text.Json` могут требовать binding redirects. В проектах в формате `packages.config` (или без автогенерации) включите их:
+
+```xml
+<PropertyGroup>
+  <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+</PropertyGroup>
 ```
 
 ## Быстрый старт

@@ -13,6 +13,11 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 ### Changed
 
 - Lowered the `netstandard2.0` dependency floor from `9.0.0` to `System.Text.Json` `8.0.6` and `System.Net.Http.Json` `8.0.1` (current LTS, security-patched), so integrators are not forced onto the `9.0.0` graph. `net8.0`/`net10.0` are unaffected (in-box APIs, no package dependency).
+- Documented concrete runtime support (.NET Framework 4.6.2+, .NET Core 2.0+, Mono, Unity) and a `.NET Framework` binding-redirects note in the READMEs.
+
+### Fixed
+
+- Regenerated the NuGet package icon to remove transparent whitespace on the right and bottom edges.
 
 ## 1.0.0
 
