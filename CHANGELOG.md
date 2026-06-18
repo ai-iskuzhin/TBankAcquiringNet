@@ -6,6 +6,10 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 ## Unreleased
 
+No changes yet.
+
+## 1.0.1
+
 ### Added
 
 - Send a versioned `User-Agent` header on every request (e.g. `TBankAcquiringNet/1.0.0 (.NET 8.0)`). The version is read from the assembly and the header is set per request, so a caller-provided `HttpClient` is not mutated.
