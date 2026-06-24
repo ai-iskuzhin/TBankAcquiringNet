@@ -5,7 +5,7 @@
     </td>
     <td valign="middle">
       <h1>TBankAcquiringNet</h1>
-      <p>.NET SDK для <a href="https://www.tbank.ru/kassa/dev/payments/">эквайринга T-Bank (Тинькофф)</a> без лишних зависимостей — инициализация платежей, проверка статуса, подтверждение, отмена и возврат, QR-операции и проверка платёжных уведомлений.</p>
+      <p>.NET SDK для <a href="https://www.tbank.ru/kassa/dev/payments/">эквайринга T-Bank (Тинькофф)</a> — инициализация платежей, проверка статуса, подтверждение, отмена и возврат, QR-операции и проверка платёжных уведомлений.</p>
       <p>
         <a href="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/ci.yml"><img src="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
         <a href="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/release.yml"><img src="https://github.com/ai-iskuzhin/TBankAcquiringNet/actions/workflows/release.yml/badge.svg" alt="Release" /></a>

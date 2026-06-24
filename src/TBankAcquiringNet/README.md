@@ -1,6 +1,6 @@
 # TBankAcquiringNet
 
-Лёгкий .NET SDK для платёжных сценариев эквайринга T-Bank без лишних зависимостей. Поддерживает `netstandard2.0`, `net8.0` и `net10.0` (.NET Framework 4.6.2+, .NET Core 2.0+, Mono, Unity).
+.NET SDK для платёжных сценариев эквайринга T-Bank. Поддерживает `netstandard2.0`, `net8.0` и `net10.0` (.NET Framework 4.6.2+, .NET Core 2.0+, Mono, Unity).
 
 ## Установка
 

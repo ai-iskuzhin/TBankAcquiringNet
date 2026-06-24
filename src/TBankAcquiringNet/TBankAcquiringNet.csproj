@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <PackageId>TBankAcquiringNet</PackageId>
-    <Description>Dependency-light .NET SDK for the T-Bank (Tinkoff) acquiring API: initialize payments, check status, confirm, cancel and refund, run QR operations, and validate payment notifications.</Description>
+    <Description>.NET SDK for the T-Bank (Tinkoff) acquiring API: initialize payments, check status, confirm, cancel and refund, run QR operations, and validate payment notifications.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon Condition="Exists('../../assets/icon.png')">icon.png</PackageIcon>

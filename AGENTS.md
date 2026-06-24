@@ -4,7 +4,7 @@ This file gives AI coding agents and maintainers the project-specific rules that
 
 ## Purpose
 
-`TBankAcquiringNet` is a dependency-light .NET SDK for T-Bank acquiring integrations.
+`TBankAcquiringNet` is a .NET SDK for T-Bank acquiring integrations.
 
 The SDK should provide typed clients, request/response models, signing helpers, notification validation, and transport configuration for T-Bank acquiring APIs. It should not contain Sportgearhub-specific business rules, database persistence, ASP.NET Core endpoint code, ORMs, or application-specific workflows.
 
@@ -37,7 +37,7 @@ Use `net10.0`. Do not add legacy target frameworks unless there is an explicit p
 
 ## Package Boundary Rules
 
-- Keep each SDK package dependency-light.
+- Minimise dependencies in each SDK package.
 - Use `HttpClient` and BCL APIs as the default transport foundation.
 - Keep ASP.NET Core, EF Core, Dapper, ORMs, queues, hosting, and persistence behavior out of the three core SDK packages.
 - Do not add a shared `Abstractions` or root runtime package until duplication or public API pressure proves it is needed.
