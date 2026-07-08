@@ -8,6 +8,16 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 1.2.0
+
+### Added
+
+- Added `TBankInitDataKeys`, `TBankDeviceType`, and `TBankDeviceOs` constants for the T‑Pay/SberPay device parameters passed via the Init `DATA` object, and documented the wallet-specific `Init`/`Confirm`/`Cancel` behaviors (device params, one-time confirm, async `CONFIRMING`/`REVERSING`/`REFUNDING`) in XML remarks.
+
+### Fixed
+
+- `GetTinkoffPayQrAsync` and `GetSberPayQrAsync` now detect a JSON error envelope returned with HTTP 200 (for example an expired payment) and throw `TBankAcquiringProtocolException` carrying the T‑Bank `ErrorCode`/`Message`, instead of returning the JSON body as if it were an SVG image.
+
 ## 1.1.1
 
 ### Fixed
