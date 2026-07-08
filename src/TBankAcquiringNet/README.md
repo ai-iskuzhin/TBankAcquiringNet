@@ -20,6 +20,9 @@ dotnet add package TBankAcquiringNet
 - `GetQr`
 - `ChargeQr`
 - СБП: `GetQrState`, `GetQrBankList`, `QrMembersList`, `AddAccountQr`, `GetAddAccountQrState`, `GetAccountQrList`, `SbpPayTest`
+- T‑Pay и SberPay: `GetTinkoffPayStatus`, `GetTinkoffPayLink`, `GetTinkoffPayQr`, `GetSberPayQr`, `GetSberPayLink`
+- Mir Pay и Alfa Pay: `GetMirPayDeepLink`, `GetAlfaPayLink`
+- чеки: `SendClosingReceipt` (фискализация, ФФД 1.2 и 1.05)
 - уведомления о статусе платежа
 - уведомления о привязке счёта
 - генерация SHA-256 `Token` и проверка уведомлений

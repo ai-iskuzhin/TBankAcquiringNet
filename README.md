@@ -92,29 +92,99 @@ new TBankPaymentsClientOptions
 
 ## Поддерживаемые методы
 
-Каждый вызов возвращает типизированный ответ, производный от `TBankResponse`, с полями `Success`, `ErrorCode`, `Message` и `Details` (см. [Обработка ошибок](#обработка-ошибок)).
+Покрытие методов [Эквайринг API Т‑Бизнес](https://developer.tbank.ru/eacq/api/priem-platezhei). В колонке «SDK API» указан метод клиента; «—» означает, что метод пока не реализован. Ответы (кроме SVG QR) типизированы и производны от `TBankResponse` с полями `Success`, `ErrorCode`, `Message`, `Details` (см. [Обработка ошибок](#обработка-ошибок)).
 
-| Метод T-Bank | API клиента | Возвращает | Документация |
-| --- | --- | --- | --- |
-| `Init` | `InitAsync` | `TBankInitPaymentResponse` | [init](https://developer.tbank.ru/eacq/api/init) |
-| `GetState` | `GetStateAsync` | `TBankPaymentStateResponse` | [get-state](https://developer.tbank.ru/eacq/api/get-state) |
-| `CheckOrder` | `CheckOrderAsync` | `TBankCheckOrderResponse` | [check-order](https://developer.tbank.ru/eacq/api/check-order) |
-| `Confirm` | `ConfirmAsync` | `TBankConfirmPaymentResponse` | [confirm](https://developer.tbank.ru/eacq/api/confirm) |
-| `Cancel` | `CancelAsync` | `TBankCancelPaymentResponse` | [cancel](https://developer.tbank.ru/eacq/api/cancel) |
-| `GetQr` | `GetQrAsync` | `TBankQrResponse` | [get-qr](https://developer.tbank.ru/eacq/api/get-qr) |
-| `ChargeQr` | `ChargeQrAsync` | `TBankChargeQrResponse` | [charge-qr](https://developer.tbank.ru/eacq/api/charge-qr) |
+### Проведение платежа
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Инициировать платеж | `InitAsync` | [init](https://developer.tbank.ru/eacq/api/init) |
+| Подтвердить платеж (FinishAuthorize) | — | [finish-authorize](https://developer.tbank.ru/eacq/api/finish-authorize) |
+| Подтвердить списание (Confirm) | `ConfirmAsync` | [confirm](https://developer.tbank.ru/eacq/api/confirm) |
+
+### Методы для работы с 3DS
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Проверить версию 3DS | — | [check-3-ds-version](https://developer.tbank.ru/eacq/api/check-3-ds-version) |
+| Пройти этап 3DS Method | — | [3-ds-method](https://developer.tbank.ru/eacq/api/3-ds-method) |
+| Отправить запрос в банк-эмитент для прохождения 3DS | — | [acs-url](https://developer.tbank.ru/eacq/api/acs-url) |
+| Подтвердить прохождение 3DS v1.0 | — | [submit-3-ds-authorization](https://developer.tbank.ru/eacq/api/submit-3-ds-authorization) |
+| Подтвердить прохождение 3DS v2.1 | — | [submit-3-ds-authorization-v-2](https://developer.tbank.ru/eacq/api/submit-3-ds-authorization-v-2) |
 
 ### СБП
 
-| Метод T-Bank | API клиента | Возвращает | Документация |
-| --- | --- | --- | --- |
-| `GetQrState` | `GetQrStateAsync` | `TBankQrStateResponse` | [get-qr-state](https://developer.tbank.ru/eacq/api/get-qr-state) |
-| `GetQrBankList` | `GetQrBankListAsync` | `TBankQrBankListResponse` | [get-qr-bank-list](https://developer.tbank.ru/eacq/api/get-qr-bank-list) |
-| `QrMembersList` | `QrMembersListAsync` | `TBankQrMembersListResponse` | [qr-members-list](https://developer.tbank.ru/eacq/api/qr-members-list) |
-| `AddAccountQr` | `AddAccountQrAsync` | `TBankAddAccountQrResponse` | [add-account-qr](https://developer.tbank.ru/eacq/api/add-account-qr) |
-| `GetAddAccountQrState` | `GetAddAccountQrStateAsync` | `TBankAddAccountQrStateResponse` | [get-add-account-qr-state](https://developer.tbank.ru/eacq/api/get-add-account-qr-state) |
-| `GetAccountQrList` | `GetAccountQrListAsync` | `TBankAccountQrListResponse` | [get-account-qr-list](https://developer.tbank.ru/eacq/api/get-account-qr-list) |
-| `SbpPayTest` | `SbpPayTestAsync` | `TBankSbpPayTestResponse` | [sbp-pay-test](https://developer.tbank.ru/eacq/api/sbp-pay-test) |
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Сформировать QR | `GetQrAsync` | [get-qr](https://developer.tbank.ru/eacq/api/get-qr) |
+| Получить список банков-пользователей QR для возврата | `QrMembersListAsync` | [qr-members-list](https://developer.tbank.ru/eacq/api/qr-members-list) |
+| Привязать счет к магазину | `AddAccountQrAsync` | [add-account-qr](https://developer.tbank.ru/eacq/api/add-account-qr) |
+| Получить статус привязки счета к магазину | `GetAddAccountQrStateAsync` | [get-add-account-qr-state](https://developer.tbank.ru/eacq/api/get-add-account-qr-state) |
+| Получить список счетов, привязанных к магазину | `GetAccountQrListAsync` | [get-account-qr-list](https://developer.tbank.ru/eacq/api/get-account-qr-list) |
+| Создать тестовую платежную сессию | `SbpPayTestAsync` | [sbp-pay-test](https://developer.tbank.ru/eacq/api/sbp-pay-test) |
+| Получить статус возврата | `GetQrStateAsync` | [get-qr-state](https://developer.tbank.ru/eacq/api/get-qr-state) |
+| Получить список банков-участников СБП для платежа | `GetQrBankListAsync` | [get-qr-bank-list](https://developer.tbank.ru/eacq/api/get-qr-bank-list) |
+
+### T‑Pay
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Определить возможность проведения платежа | `GetTinkoffPayStatusAsync` | [status](https://developer.tbank.ru/eacq/api/status) |
+| Получить ссылку | `GetTinkoffPayLinkAsync` | [link](https://developer.tbank.ru/eacq/api/link) |
+| Получить QR | `GetTinkoffPayQrAsync` | [qr](https://developer.tbank.ru/eacq/api/qr) |
+
+### SberPay
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Получить QR | `GetSberPayQrAsync` | [sber-pay-qr](https://developer.tbank.ru/eacq/api/sber-pay-qr) |
+| Получить ссылку | `GetSberPayLinkAsync` | [sber-paylink](https://developer.tbank.ru/eacq/api/sber-paylink) |
+
+### Mir Pay и Alfa Pay
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Mir Pay — Получить DeepLink | `GetMirPayDeepLinkAsync` | [get-deep-link](https://developer.tbank.ru/eacq/api/get-deep-link) |
+| Alfa Pay — Получить ссылку | `GetAlfaPayLinkAsync` | [alfa-pay](https://developer.tbank.ru/eacq/api/alfa-pay) |
+
+### Проведение платежа по сохраненным реквизитам
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Провести платеж по сохраненным реквизитам | — | [charge](https://developer.tbank.ru/eacq/api/charge) |
+| Автоплатеж по QR СБП | `ChargeQrAsync` | [charge-qr](https://developer.tbank.ru/eacq/api/charge-qr) |
+
+### Отмена, статус и справки
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Отменить платеж | `CancelAsync` | [cancel](https://developer.tbank.ru/eacq/api/cancel) |
+| Получить статус платежа | `GetStateAsync` | [get-state](https://developer.tbank.ru/eacq/api/get-state) |
+| Получить статус заказа | `CheckOrderAsync` | [check-order](https://developer.tbank.ru/eacq/api/check-order) |
+| Получить справку по операции | — | [get-confirm-operation](https://developer.tbank.ru/eacq/api/get-confirm-operation) |
+
+### Привязка карты
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Зарегистрировать покупателя | — | [add-customer](https://developer.tbank.ru/eacq/api/add-customer) |
+| Получить данные покупателя | — | [get-customer](https://developer.tbank.ru/eacq/api/get-customer) |
+| Удалить данные покупателя | — | [remove-customer](https://developer.tbank.ru/eacq/api/remove-customer) |
+| Инициировать привязку карты к покупателю | — | [add-card](https://developer.tbank.ru/eacq/api/add-card) |
+| Привязать карту | — | [attach-card](https://developer.tbank.ru/eacq/api/attach-card) |
+| Получить статус привязки карты | — | [get-add-card-state](https://developer.tbank.ru/eacq/api/get-add-card-state) |
+| Получить список карт покупателя | — | [get-card-list](https://developer.tbank.ru/eacq/api/get-card-list) |
+| Удалить привязанную карту покупателя | — | [remove-card](https://developer.tbank.ru/eacq/api/remove-card) |
+
+### Чеки
+
+| Метод T-Bank | SDK API | Документация |
+| --- | --- | --- |
+| Отправить закрывающий чек в кассу | `SendClosingReceiptAsync` | [send-closing-receipt](https://developer.tbank.ru/eacq/api/send-closing-receipt) |
+
+Методы T‑Pay и SberPay выполняются как GET-запросы без подписи `Token`; методы QR возвращают SVG-изображение строкой. Методы Mir Pay и Alfa Pay — подписанные POST-запросы.
+
+> **Примечание.** DeepLink Mir Pay открывается только на мобильных устройствах Android — приложение Mir Pay доступно исключительно на Android.
 
 Пакет также включает автоматическую генерацию token для запросов, проверку token платёжных уведомлений, типизированные статусы платежей, описания известных кодов ошибок T-Bank, метаданные ответа (с опциональным сохранением сырого тела) и консервативную локальную валидацию запросов.
 
