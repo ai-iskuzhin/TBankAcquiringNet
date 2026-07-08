@@ -8,6 +8,14 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 1.1.0
+
+### Added
+
+- Added T‑Pay and SberPay methods to `TBankPaymentsClient`: `GetTinkoffPayStatusAsync`, `GetTinkoffPayLinkAsync`, `GetTinkoffPayQrAsync`, `GetSberPayQrAsync`, and `GetSberPayLinkAsync`. These are unsigned GET requests; the `link`/`status` methods return typed `Params`-wrapped responses and the `QR` methods return the SVG image as a string.
+- Added Mir Pay and Alfa Pay methods to `TBankPaymentsClient`: `GetMirPayDeepLinkAsync` (returns the JWT-signed DeepLink) and `GetAlfaPayLinkAsync` (returns a `Params`-wrapped redirect link). Both are signed POST requests.
+- Added `SendClosingReceiptAsync` (fiscalization) with separate typed receipt models per FFD version — `TBankReceiptFfd12` (FFD 1.2) and `TBankReceiptFfd105` (FFD 1.05) — passed via `TBankSendClosingReceiptFfd12Request` / `TBankSendClosingReceiptFfd105Request`. The request targets the `/cashbox/SendClosingReceipt` endpoint (host root, not the `/v2/` base). Added `PROCESSING`, `CHECKING`, `CHECKED`, `COMPLETING`, and `COMPLETED` to `TBankPaymentStatus`.
+
 ## 1.0.1
 
 ### Added
