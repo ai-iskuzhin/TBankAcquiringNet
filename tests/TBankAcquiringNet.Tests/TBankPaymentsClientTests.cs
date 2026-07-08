@@ -1028,6 +1028,8 @@ public sealed class TBankPaymentsClientTests
 
         Assert.Equal(HttpMethod.Get, handler.Method);
         Assert.Equal("https://example.test/v2/TinkoffPay/700031849/QR", handler.RequestUri?.ToString());
+        // Must be the registered IANA type; "image/svg" is rejected by T-Bank with HTTP 415.
+        Assert.Equal("image/svg+xml", handler.Accept);
         Assert.Equal(svg, result);
     }
 
@@ -1048,6 +1050,7 @@ public sealed class TBankPaymentsClientTests
 
         Assert.Equal(HttpMethod.Get, handler.Method);
         Assert.Equal("https://example.test/v2/SberPay/700031849/QR", handler.RequestUri?.ToString());
+        Assert.Equal("image/svg+xml", handler.Accept);
         Assert.Equal(svg, result);
     }
 
@@ -1288,11 +1291,14 @@ public sealed class TBankPaymentsClientTests
 
         public string? UserAgent { get; private set; }
 
+        public string? Accept { get; private set; }
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             RequestUri = request.RequestUri;
             Method = request.Method;
             UserAgent = request.Headers.UserAgent.ToString();
+            Accept = request.Headers.Accept.ToString();
             Body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
 
             var response = new HttpResponseMessage(statusCode)

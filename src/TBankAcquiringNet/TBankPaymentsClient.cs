@@ -630,7 +630,9 @@ public sealed class TBankPaymentsClient
     {
         var endpoint = new Uri(options.ResolveBaseAddress(), relativePath);
         var httpRequest = CreateRequest(HttpMethod.Get, endpoint);
-        httpRequest.Headers.Accept.ParseAdd("image/svg");
+        // T-Bank rejects the non-standard "image/svg" media type with HTTP 415; the registered
+        // IANA type is "image/svg+xml".
+        httpRequest.Headers.Accept.ParseAdd("image/svg+xml");
 
         return SendSvgAsync(method, httpRequest, cancellationToken);
     }
