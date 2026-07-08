@@ -10,19 +10,13 @@ The SDK should provide typed clients, request/response models, signing helpers, 
 
 ## Project Layout
 
-Current projects:
+The repository contains a single package:
 
 ```text
 src/TBankAcquiringNet
-src/TBankAcquiringNet.Multisplit.Shops
-src/TBankAcquiringNet.Multisplit.Payouts
 ```
 
-Reference docs copied from the T-Bank integration analysis live here:
-
-```text
-docs/integrations/t-bank-acquiring/vyplaty-multisplit.md
-```
+Multisplit provider shop registration and payout packages now live in separate repositories, not here.
 
 Future adapter packages should be added only when framework-specific behavior is actually needed:
 
@@ -31,13 +25,13 @@ src/TBankAcquiringNet.AspNetCore
 src/TBankAcquiringNet.Testing
 ```
 
-Use `net10.0`. Do not add legacy target frameworks unless there is an explicit product decision.
+Target `netstandard2.0`, `net8.0`, and `net10.0`. Changing the set of target frameworks is an explicit product decision.
 
 ## Package Boundary Rules
 
 - Minimise dependencies in each SDK package.
 - Use `HttpClient` and BCL APIs as the default transport foundation.
-- Keep ASP.NET Core, EF Core, Dapper, ORMs, queues, hosting, and persistence behavior out of the three core SDK packages.
+- Keep ASP.NET Core, EF Core, Dapper, ORMs, queues, hosting, and persistence behavior out of the SDK package.
 - Do not add a shared `Abstractions` or root runtime package until duplication or public API pressure proves it is needed.
 - Keep public APIs centered on typed clients, options, request models, response models, status enums, error details, signing helpers, notification models, and validation results.
 - Do not expose raw stringly-typed dictionaries for known T-Bank fields unless the API explicitly supports extension data.
@@ -62,40 +56,7 @@ account binding notifications
 token generation and validation
 ```
 
-Keep payment acceptance separate from:
-
-```text
-provider shop registration -> TBankAcquiringNet.Multisplit.Shops
-payout initiation/status    -> TBankAcquiringNet.Multisplit.Payouts
-```
-
-## Multisplit Shops Package Rules
-
-`TBankAcquiringNet.Multisplit.Shops` covers provider shop registration and updates.
-
-Initial scope should focus on:
-
-```text
-OAuth token acquisition
-provider shop registration
-shop lookup by shopCode
-provider banking detail updates
-```
-
-## Multisplit Payouts Package Rules
-
-`TBankAcquiringNet.Multisplit.Payouts` covers A2C/e2c payout flows.
-
-Initial scope should focus on:
-
-```text
-payout Init
-payout status lookup
-card payouts
-SBP payouts
-partner payouts
-certificate/signature request fields
-```
+Multisplit provider shop registration and payout flows live in separate repositories and are out of scope for this package.
 
 ## Security And Signing Rules
 
@@ -141,7 +102,6 @@ Use Russian XML comments for public T-Bank-specific enums, status values, error-
 
 Put detailed material in docs:
 
-- copied T-Bank integration source notes: `docs/integrations/t-bank-acquiring/`
 - payments design notes: `docs/payments-design.md`
 - roadmap and implementation status: `docs/roadmap.md`
 - error-handling policy: `docs/error-handling.md`

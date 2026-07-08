@@ -47,17 +47,11 @@ unzip -l artifacts/packages/TBankAcquiringNet.<version>.nupkg
 
 ## Package Versions
 
-Packages can be versioned independently while the project is in preview, but aligned versions are preferred when publishing the whole package family from one release tag.
-
-Current package identities:
+The repository publishes a single package:
 
 ```text
 TBankAcquiringNet
-TBankAcquiringNet.Multisplit.Shops
-TBankAcquiringNet.Multisplit.Payouts
 ```
-
-`TBankAcquiringNet` and `TBankAcquiringNet.Multisplit.Shops` have implemented runtime behavior. `TBankAcquiringNet.Multisplit.Payouts` is intentionally marked non-packable until it has a real SDK surface.
 
 ## GitHub Actions
 

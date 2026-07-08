@@ -48,4 +48,4 @@ dotnet test tests/TBankAcquiringNet.Tests.Integration/TBankAcquiringNet.Tests.In
 
 The integration test creates a fresh payment session with `Init`, reconciles it with `CheckOrder`, calls `GetState`, cancels the payment, and calls `GetState` again. `PaymentId` is returned by `Init` at runtime and should not be stored as configuration.
 
-The payment API uses `TerminalKey` and terminal `Password` for request token generation. Login/password credentials for registration APIs belong to the multisplit shop-registration package rather than the payments package.
+The payment API uses `TerminalKey` and terminal `Password` for request token generation. Other credential types (such as OAuth login/password used by multisplit registration APIs) are out of scope for this package.

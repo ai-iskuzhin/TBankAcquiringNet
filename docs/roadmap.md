@@ -4,8 +4,7 @@ This roadmap is a living implementation checklist. Keep it current whenever publ
 
 ## Current Focus: Payments
 
-- [x] Create repository skeleton and package split.
-- [x] Add copied T-Bank integration reference docs.
+- [x] Create repository skeleton.
 - [x] Add `TBankAcquiringNet`.
 - [x] Add automatic SHA-256 `Token` generation and verification helper.
 - [x] Add `InitAsync`.
@@ -24,23 +23,7 @@ This roadmap is a living implementation checklist. Keep it current whenever publ
 - [x] Add more documented T-Bank statuses and error-code handling.
 - [x] Run real test-environment `Init -> CheckOrder -> GetState -> Cancel -> GetState` with terminal credentials.
 
-## Next Package: Multisplit Shops
-
-- [x] Make `TBankAcquiringNet.Multisplit.Shops` packable when the public SDK surface exists.
-- [x] Add OAuth token client.
-- [x] Add provider shop registration request/response models.
-- [x] Add shop lookup by `shopCode`.
-- [x] Add provider banking details update.
-- [ ] Add integration tests gated by registration credentials and mTLS requirements.
-
-## Later Package: Multisplit Payouts
-
-- [ ] Make `TBankAcquiringNet.Multisplit.Payouts` packable when the public SDK surface exists.
-- [ ] Add payout `Init`.
-- [ ] Add payout status lookup.
-- [ ] Add token-signing mode for payouts.
-- [ ] Add certificate signature model support for `DigestValue`, `SignatureValue`, and `X509SerialNumber`.
-- [ ] Add card/SBP/partner payout request shapes.
+Multisplit provider shop registration and payout flows have moved to separate repositories and are no longer tracked here.
 
 ## Possible Future Packages
 
