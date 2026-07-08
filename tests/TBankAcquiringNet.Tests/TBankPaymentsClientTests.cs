@@ -1055,6 +1055,29 @@ public sealed class TBankPaymentsClientTests
     }
 
     [Fact]
+    public async Task GetQrSvg_ThrowsWhenBodyIsJsonErrorEnvelope()
+    {
+        // T-Bank can answer HTTP 200 with a JSON error instead of an SVG (e.g. an expired payment).
+        using var handler = new RecordingHandler("""
+            {"Success":false,"ErrorCode":"8","Message":"Неверный статус транзакции.","Details":null}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var exception = await Assert.ThrowsAsync<TBankAcquiringProtocolException>(
+            () => client.GetTinkoffPayQrAsync("8819955040"));
+
+        Assert.Contains("ErrorCode '8'", exception.Message);
+        Assert.Contains("Неверный статус транзакции.", exception.Message);
+        Assert.Contains("Неверный статус транзакции.", exception.ResponseBodyPreview!);
+    }
+
+    [Fact]
     public async Task GetSberPayLinkAsync_GetsSberPayLinkEndpoint()
     {
         using var handler = new RecordingHandler("""

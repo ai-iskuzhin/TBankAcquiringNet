@@ -47,6 +47,8 @@ public sealed class TBankPaymentsClient
     /// Точка входа платежного сценария (Init → FinishAuthorize → Confirm). Сценарии оплаты:
     /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/nonPCI/">без PCI DSS (редирект на платежную форму T‑Bank)</see>
     /// и <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/">с PCI DSS (своя платежная форма)</see>.
+    /// Для кошельков T‑Pay и SberPay Web параметры устройства передаются через
+    /// <see cref="TBankInitPaymentRequest.DATA"/> — см. <see cref="TBankInitDataKeys"/>.
     /// </remarks>
     public Task<TBankInitPaymentResponse> InitAsync(
         TBankInitPaymentRequest request,
@@ -117,6 +119,12 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Отменяет платеж или выполняет возврат методом Cancel.
     /// </summary>
+    /// <remarks>
+    /// Для SberPay и Alfa Pay отмена (до списания) выполняется один раз и на полную сумму;
+    /// возврат (после списания) — несколько раз, частично или полностью, пока не исчерпана сумма
+    /// платежа. При нагрузке на стороне провайдера статус может вернуться <c>REVERSING</c>/<c>REFUNDING</c>
+    /// и перейти в <c>REVERSED</c>/<c>REFUNDED</c> в течение ~2 минут — опрашивайте GetState.
+    /// </remarks>
     public Task<TBankCancelPaymentResponse> CancelAsync(
         TBankCancelPaymentRequest request,
         CancellationToken cancellationToken = default)
@@ -144,6 +152,9 @@ public sealed class TBankPaymentsClient
     /// Завершает двухстадийную оплату (Init → FinishAuthorize → Confirm). Сценарии:
     /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/nonPCI/">без PCI DSS</see>,
     /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/">с PCI DSS</see>.
+    /// Для SberPay и Alfa Pay подтвердить сессию можно только один раз (частично или полностью).
+    /// При нагрузке на стороне провайдера статус может вернуться <c>CONFIRMING</c> и перейти в
+    /// <c>CONFIRMED</c> в течение ~2 минут — опрашивайте состояние методом GetState.
     /// </remarks>
     public Task<TBankConfirmPaymentResponse> ConfirmAsync(
         TBankConfirmPaymentRequest request,
@@ -729,7 +740,56 @@ public sealed class TBankPaymentsClient
                 response.StatusCode);
         }
 
+        // T-Bank can answer HTTP 200 with a JSON error envelope instead of an SVG image
+        // (e.g. {"Success":false,"ErrorCode":"8","Message":"Неверный статус транзакции."}).
+        // An SVG document starts with '<'; a JSON object starts with '{'. Surface the error
+        // rather than returning JSON as if it were an image.
+        if (StartsWithJsonObject(responseBody))
+        {
+            var (errorCode, errorMessage) = TryReadErrorEnvelope(responseBody);
+            throw new TBankAcquiringProtocolException(
+                $"T-Bank {method} returned a JSON body instead of an SVG image. ErrorCode '{errorCode}', Message '{errorMessage}'.",
+                response.StatusCode,
+                CreateBodyPreview(responseBody));
+        }
+
         return responseBody;
+    }
+
+    private static bool StartsWithJsonObject(string body)
+    {
+        foreach (var character in body)
+        {
+            if (char.IsWhiteSpace(character))
+            {
+                continue;
+            }
+
+            return character == '{';
+        }
+
+        return false;
+    }
+
+    private static (string? ErrorCode, string? Message) TryReadErrorEnvelope(string responseBody)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(responseBody);
+            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return (null, null);
+            }
+
+            var errorCode = document.RootElement.TryGetProperty("ErrorCode", out var code) ? code.GetString() : null;
+            var message = document.RootElement.TryGetProperty("Message", out var msg) ? msg.GetString() : null;
+
+            return (errorCode, message);
+        }
+        catch (JsonException)
+        {
+            return (null, null);
+        }
     }
 
     private static TBankAcquiringResponseMetadata CreateResponseMetadata(
