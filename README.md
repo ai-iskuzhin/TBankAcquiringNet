@@ -202,6 +202,86 @@ var confirm = await client.ConfirmAsync(new TBankConfirmPaymentRequest
 
 `Cancel` покрывает и отмену (до списания), и возврат (после списания); передайте `Amount` для частичного возврата.
 
+## Платежи по СБП
+
+Зарегистрируйте QR по платежу и при необходимости проверьте статус возврата:
+
+```csharp
+// Динамический QR СБП: payload или SVG-изображение
+var qr = await client.GetQrAsync(new TBankQrRequest
+{
+    PaymentId = paymentId,
+    DataType = TBankQrDataType.Payload   // или Image — SVG-картинка
+});
+Console.WriteLine(qr.Data);
+
+// Статус возврата по СБП
+var qrState = await client.GetQrStateAsync(new TBankQrStateRequest { PaymentId = paymentId });
+Console.WriteLine(qrState.Status);       // например CONFIRMED, REFUNDED
+
+// Автоплатёж по привязанному счёту СБП
+var charge = await client.ChargeQrAsync(new TBankChargeQrRequest
+{
+    PaymentId = paymentId,
+    AccountToken = accountToken          // из GetAccountQrList / уведомления о привязке
+});
+```
+
+Список банков-участников (`GetQrBankListAsync`), участников возврата (`QrMembersListAsync`) и привязка счетов к магазину (`AddAccountQrAsync`, `GetAddAccountQrStateAsync`, `GetAccountQrListAsync`) вызываются аналогично — см. таблицу выше.
+
+## Кошельки: T‑Pay, SberPay, Mir Pay, Alfa Pay
+
+Кошельки возвращают ссылку для редиректа, deeplink или QR для уже инициированного платежа (`Init`):
+
+```csharp
+// T‑Pay: проверьте доступность на терминале, затем получите ссылку
+var tpay = await client.GetTinkoffPayStatusAsync();
+if (tpay.Params?.Allowed == true)
+{
+    var link = await client.GetTinkoffPayLinkAsync(paymentId, tpay.Params.Version!);
+    Console.WriteLine(link.Params?.RedirectUrl);
+}
+
+// Mir Pay: подписанный DeepLink (открывается только на Android)
+var mir = await client.GetMirPayDeepLinkAsync(new TBankMirPayDeepLinkRequest { PaymentId = paymentId });
+Console.WriteLine(mir.Deeplink);
+
+// Alfa Pay: ссылка для редиректа
+var alfa = await client.GetAlfaPayLinkAsync(new TBankAlfaPayLinkRequest { PaymentId = paymentId });
+Console.WriteLine(alfa.Params?.RedirectUrl);
+
+// SberPay: QR для десктопа возвращается строкой SVG
+string sberQr = await client.GetSberPayQrAsync(paymentId);
+```
+
+## Фискализация чеков
+
+Отправьте закрывающий чек в кассу. Модель чека выбирается по версии ФФД: `TBankReceiptFfd12` (ФФД 1.2) или `TBankReceiptFfd105` (ФФД 1.05):
+
+```csharp
+await client.SendClosingReceiptAsync(new TBankSendClosingReceiptFfd12Request
+{
+    PaymentId = paymentId,
+    Receipt = new TBankReceiptFfd12
+    {
+        Taxation = "osn",
+        Email = "customer@example.com",
+        Items =
+        [
+            new TBankReceiptItemFfd12
+            {
+                Name = "Наименование товара",
+                Price = 10000,           // копейки
+                Quantity = 1m,
+                Amount = 10000,          // Price × Quantity
+                Tax = "vat10",
+                MeasurementUnit = "шт"
+            }
+        ]
+    }
+});
+```
+
 ## Приём уведомлений
 
 T-Bank отправляет подписанное уведомление POST-запросом на ваш `NotificationURL`. Проверьте его token перед обработкой, затем верните ровно то тело успеха, которое ожидает API:
