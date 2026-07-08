@@ -6,7 +6,7 @@ This file gives AI coding agents and maintainers the project-specific rules that
 
 `TBankAcquiringNet` is a .NET SDK for T-Bank acquiring integrations.
 
-The SDK should provide typed clients, request/response models, signing helpers, notification validation, and transport configuration for T-Bank acquiring APIs. It should not contain Sportgearhub-specific business rules, database persistence, ASP.NET Core endpoint code, ORMs, or application-specific workflows.
+The SDK should provide typed clients, request/response models, signing helpers, notification validation, and transport configuration for T-Bank acquiring APIs. It should not contain application-specific business rules, database persistence, ASP.NET Core endpoint code, ORMs, or workflows.
 
 ## Project Layout
 
@@ -18,11 +18,9 @@ src/TBankAcquiringNet.Multisplit.Shops
 src/TBankAcquiringNet.Multisplit.Payouts
 ```
 
-Reference docs copied from the Sportgearhub integration analysis live here:
+Reference docs copied from the T-Bank integration analysis live here:
 
 ```text
-docs/integrations/t-bank-acquiring/oplata_multisplit.md
-docs/integrations/t-bank-acquiring/api_reg_upd_multisplit.md
 docs/integrations/t-bank-acquiring/vyplaty-multisplit.md
 ```
 
@@ -44,7 +42,7 @@ Use `net10.0`. Do not add legacy target frameworks unless there is an explicit p
 - Keep public APIs centered on typed clients, options, request models, response models, status enums, error details, signing helpers, notification models, and validation results.
 - Do not expose raw stringly-typed dictionaries for known T-Bank fields unless the API explicitly supports extension data.
 - Preserve T-Bank wire names and casing in serialization models.
-- Keep Sportgearhub-specific concepts out of package names, namespaces, and public API.
+- Keep application-specific concepts out of package names, namespaces, and public API.
 
 ## Payments Package Rules
 

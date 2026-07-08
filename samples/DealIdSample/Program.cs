@@ -9,7 +9,7 @@ using TBankAcquiringNet;
 //   while sending DealId="e190a9c7-e2fe-476f-9019-e29fe3d840b8" (a GUID) together with
 //   CreateDealWithType="MULTISPLIT".
 //
-// Root cause (see docs/integrations/t-bank-acquiring/oplata_multisplit.md, table 2.3.1):
+// Root cause (per the T-Bank multisplit deal API, table 2.3.1):
 //   * DealId is type **Number** — a numeric identifier ISSUED BY T-Bank (e.g. 23123123),
 //     not a GUID you mint yourself. A GUID fails format validation -> error 934.
 //   * DealId and CreateDealWithType are mutually exclusive. CreateDealWithType is the

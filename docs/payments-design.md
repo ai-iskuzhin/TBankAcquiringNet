@@ -4,7 +4,7 @@ This note captures the proposed starting shape for `TBankAcquiringNet`.
 
 ## Goal
 
-Provide a small typed SDK for T-Bank acquiring payment acceptance without bringing in ASP.NET Core, persistence, queues, or Sportgearhub-specific workflow code.
+Provide a small typed SDK for T-Bank acquiring payment acceptance without bringing in ASP.NET Core, persistence, queues, or application-specific workflow code.
 
 ## Initial Surface
 
