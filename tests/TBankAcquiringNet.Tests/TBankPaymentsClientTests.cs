@@ -955,6 +955,325 @@ public sealed class TBankPaymentsClientTests
         Assert.Matches(@"^TBankAcquiringNet/\d+\.\d+\.\d+", handler.UserAgent!);
     }
 
+    [Fact]
+    public async Task GetTinkoffPayStatusAsync_GetsTinkoffPayStatusEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Params": { "Allowed": true, "Version": "1.0" },
+              "Success": true,
+              "ErrorCode": "0",
+              "Message": "OK"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetTinkoffPayStatusAsync();
+
+        Assert.Equal(HttpMethod.Get, handler.Method);
+        Assert.Equal("https://example.test/v2/TinkoffPay/terminals/TestB/status", handler.RequestUri?.ToString());
+        Assert.Null(handler.Body);
+        Assert.True(response.Success);
+        Assert.NotNull(response.Params);
+        Assert.True(response.Params!.Allowed);
+        Assert.Equal("1.0", response.Params.Version);
+    }
+
+    [Fact]
+    public async Task GetTinkoffPayLinkAsync_GetsTinkoffPayLinkEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Params": { "RedirectUrl": "https://o.tbank.ru/tpay/req123", "WebQR": "http://example.com" },
+              "Success": true,
+              "ErrorCode": "0"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetTinkoffPayLinkAsync("700031849", "2.0");
+
+        Assert.Equal(HttpMethod.Get, handler.Method);
+        Assert.Equal("https://example.test/v2/TinkoffPay/transactions/700031849/versions/2.0/link", handler.RequestUri?.ToString());
+        Assert.Equal("https://o.tbank.ru/tpay/req123", response.Params?.RedirectUrl);
+        Assert.Equal("http://example.com", response.Params?.WebQR);
+    }
+
+    [Fact]
+    public async Task GetTinkoffPayQrAsync_ReturnsSvg()
+    {
+        const string svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"124\" height=\"124\"></svg>";
+        using var handler = new RecordingHandler(svg);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var result = await client.GetTinkoffPayQrAsync("700031849");
+
+        Assert.Equal(HttpMethod.Get, handler.Method);
+        Assert.Equal("https://example.test/v2/TinkoffPay/700031849/QR", handler.RequestUri?.ToString());
+        Assert.Equal(svg, result);
+    }
+
+    [Fact]
+    public async Task GetSberPayQrAsync_ReturnsSvg()
+    {
+        const string svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"124\" height=\"124\"></svg>";
+        using var handler = new RecordingHandler(svg);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var result = await client.GetSberPayQrAsync("700031849");
+
+        Assert.Equal(HttpMethod.Get, handler.Method);
+        Assert.Equal("https://example.test/v2/SberPay/700031849/QR", handler.RequestUri?.ToString());
+        Assert.Equal(svg, result);
+    }
+
+    [Fact]
+    public async Task GetSberPayLinkAsync_GetsSberPayLinkEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Params": { "RedirectUrl": "tinkoffbank://Main/EInvoicing?billId=5000015507" },
+              "Success": true,
+              "ErrorCode": "0"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetSberPayLinkAsync("700031849");
+
+        Assert.Equal(HttpMethod.Get, handler.Method);
+        Assert.Equal("https://example.test/v2/SberPay/transactions/700031849/link", handler.RequestUri?.ToString());
+        Assert.StartsWith("tinkoffbank://", response.Params?.RedirectUrl);
+    }
+
+    [Fact]
+    public async Task GetMirPayDeepLinkAsync_PostsSignedRequestToMirPayEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "Deeplink": "mirpay://pay.mironline.ru/inapp/eyJhbGciOiJQUzI1NiJ9",
+              "Message": "string"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetMirPayDeepLinkAsync(new TBankMirPayDeepLinkRequest
+        {
+            PaymentId = "20150"
+        });
+
+        Assert.Equal(HttpMethod.Post, handler.Method);
+        Assert.Equal("https://example.test/v2/MirPay/GetDeepLink", handler.RequestUri?.ToString());
+        Assert.StartsWith("mirpay://", response.Deeplink);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("20150", root.GetProperty("PaymentId").GetString());
+        Assert.Equal(
+            "03acc0a77d6e870f402a1038c1ca5d8b4a985fe76f08016a869f10f2382bd7a9",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetAlfaPayLinkAsync_PostsSignedRequestToAlfaPayEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Params": { "RedirectUrl": "https://payment-app.com" },
+              "Success": true,
+              "ErrorCode": "0"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.GetAlfaPayLinkAsync(new TBankAlfaPayLinkRequest
+        {
+            PaymentId = "20150"
+        });
+
+        Assert.Equal(HttpMethod.Post, handler.Method);
+        Assert.Equal("https://example.test/v2/AlfaPay/link/get", handler.RequestUri?.ToString());
+        Assert.Equal("https://payment-app.com", response.Params?.RedirectUrl);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("20150", root.GetProperty("PaymentId").GetString());
+        Assert.Equal(
+            "03acc0a77d6e870f402a1038c1ca5d8b4a985fe76f08016a869f10f2382bd7a9",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task SendClosingReceiptAsync_Ffd12_PostsSignedRequestToCashboxEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "Message": "OK"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.SendClosingReceiptAsync(new TBankSendClosingReceiptFfd12Request
+        {
+            PaymentId = "20150",
+            Receipt = new TBankReceiptFfd12
+            {
+                Taxation = "osn",
+                Email = "a@test.ru",
+                Items =
+                [
+                    new TBankReceiptItemFfd12
+                    {
+                        Name = "Товар 1",
+                        Price = 10000,
+                        Quantity = 1m,
+                        Amount = 10000,
+                        Tax = "vat10",
+                        MeasurementUnit = "шт",
+                        SectoralItemProps =
+                        [
+                            new TBankReceiptSectoralProps { FederalId = "001", Date = "21.11.2020", Number = "123/43", Value = "test" }
+                        ]
+                    }
+                ]
+            }
+        });
+
+        // The cashbox endpoint is at the host root, not under /v2/.
+        Assert.Equal(HttpMethod.Post, handler.Method);
+        Assert.Equal("https://example.test/cashbox/SendClosingReceipt", handler.RequestUri?.ToString());
+        Assert.True(response.Success);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("20150", root.GetProperty("PaymentId").GetString());
+
+        var item = root.GetProperty("Receipt").GetProperty("Items")[0];
+        Assert.Equal("Товар 1", item.GetProperty("Name").GetString());
+        Assert.Equal(10000, item.GetProperty("Price").GetInt64());
+        // FFD 1.2: SectoralItemProps is an array.
+        Assert.Equal(JsonValueKind.Array, item.GetProperty("SectoralItemProps").ValueKind);
+
+        // Receipt is an object, so it is excluded from the signing token.
+        Assert.Equal(
+            "03acc0a77d6e870f402a1038c1ca5d8b4a985fe76f08016a869f10f2382bd7a9",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task SendClosingReceiptAsync_Ffd105_SerializesObjectSectoralPropsAndCamelCaseCheckProps()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "Message": "OK"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.SendClosingReceiptAsync(new TBankSendClosingReceiptFfd105Request
+        {
+            PaymentId = "20150",
+            Receipt = new TBankReceiptFfd105
+            {
+                Taxation = "osn",
+                AdditionalCheckProps = "bso-1",
+                Items =
+                [
+                    new TBankReceiptItemFfd105
+                    {
+                        Name = "Товар 1",
+                        Price = 10000,
+                        Quantity = 1m,
+                        Amount = 10000,
+                        Tax = "vat10",
+                        Ean13 = "0123456789012",
+                        SectoralItemProps = new TBankReceiptSectoralProps { FederalId = "001" }
+                    }
+                ]
+            }
+        });
+
+        Assert.Equal("https://example.test/cashbox/SendClosingReceipt", handler.RequestUri?.ToString());
+        Assert.True(response.Success);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var receipt = document.RootElement.GetProperty("Receipt");
+
+        // FFD 1.05: additionalCheckProps is camelCase.
+        Assert.Equal("bso-1", receipt.GetProperty("additionalCheckProps").GetString());
+
+        var item = receipt.GetProperty("Items")[0];
+        Assert.Equal("0123456789012", item.GetProperty("Ean13").GetString());
+        // FFD 1.05: SectoralItemProps is a single object.
+        Assert.Equal(JsonValueKind.Object, item.GetProperty("SectoralItemProps").ValueKind);
+    }
+
     private sealed class RecordingHandler(string responseBody, HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
     {
         public Dictionary<string, string> ResponseHeaders { get; } = [];

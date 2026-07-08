@@ -104,6 +104,46 @@ internal static class TBankPaymentRequestValidator
         RequireText(request.PaymentId, nameof(request.PaymentId));
     }
 
+    public static void Validate(TBankMirPayDeepLinkRequest request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+    }
+
+    public static void Validate(TBankAlfaPayLinkRequest request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+    }
+
+    public static void Validate(TBankSendClosingReceiptFfd12Request request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+        RequireReceiptItems(request.Receipt, request.Receipt?.Items?.Count);
+    }
+
+    public static void Validate(TBankSendClosingReceiptFfd105Request request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+        RequireReceiptItems(request.Receipt, request.Receipt?.Items?.Count);
+    }
+
+    private static void RequireReceiptItems(object? receipt, int? itemCount)
+    {
+        if (receipt is null)
+        {
+            throw new TBankAcquiringValidationException("Receipt is required.");
+        }
+
+        if (itemCount is not > 0)
+        {
+            throw new TBankAcquiringValidationException("Receipt.Items must contain at least one item.");
+        }
+
+        if (itemCount > 100)
+        {
+            throw new TBankAcquiringValidationException("Receipt.Items cannot contain more than 100 items.");
+        }
+    }
+
     public static void Validate(TBankSbpPayTestRequest request)
     {
         RequireText(request.PaymentId, nameof(request.PaymentId));

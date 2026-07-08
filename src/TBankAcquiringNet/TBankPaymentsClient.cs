@@ -43,6 +43,11 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Инициирует платежную сессию методом Init.
     /// </summary>
+    /// <remarks>
+    /// Точка входа платежного сценария (Init → FinishAuthorize → Confirm). Сценарии оплаты:
+    /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/nonPCI/">без PCI DSS (редирект на платежную форму T‑Bank)</see>
+    /// и <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/">с PCI DSS (своя платежная форма)</see>.
+    /// </remarks>
     public Task<TBankInitPaymentResponse> InitAsync(
         TBankInitPaymentRequest request,
         CancellationToken cancellationToken = default)
@@ -135,6 +140,11 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Подтверждает авторизованный платеж методом Confirm.
     /// </summary>
+    /// <remarks>
+    /// Завершает двухстадийную оплату (Init → FinishAuthorize → Confirm). Сценарии:
+    /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/nonPCI/">без PCI DSS</see>,
+    /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/">с PCI DSS</see>.
+    /// </remarks>
     public Task<TBankConfirmPaymentResponse> ConfirmAsync(
         TBankConfirmPaymentRequest request,
         CancellationToken cancellationToken = default)
@@ -158,6 +168,7 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Регистрирует QR и возвращает payload или изображение методом GetQr.
     /// </summary>
+    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/sbp/">приём платежей через СБП на своей платежной форме</see>.</remarks>
     public Task<TBankQrResponse> GetQrAsync(
         TBankQrRequest request,
         CancellationToken cancellationToken = default)
@@ -380,6 +391,195 @@ public sealed class TBankPaymentsClient
         return SendAsync<TBankSbpPayTestRequest, TBankSbpPayTestResponse>("SbpPayTest", signedRequest, cancellationToken);
     }
 
+    /// <summary>
+    /// Проверяет доступность T‑Pay на терминале методом TinkoffPay status.
+    /// </summary>
+    /// <remarks>
+    /// API: <see href="https://developer.tbank.ru/eacq/api/status">status</see>.
+    /// Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/t-pay/">приём платежей через T‑Pay</see>.
+    /// </remarks>
+    public Task<TBankTinkoffPayStatusResponse> GetTinkoffPayStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var path = $"TinkoffPay/terminals/{Uri.EscapeDataString(options.TerminalKey)}/status";
+
+        return SendGetJsonAsync<TBankTinkoffPayStatusResponse>("TinkoffPay status", path, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает ссылку T‑Pay для безусловного редиректа покупателя методом TinkoffPay link.
+    /// </summary>
+    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/t-pay/">приём платежей через T‑Pay</see>.</remarks>
+    public Task<TBankTinkoffPayLinkResponse> GetTinkoffPayLinkAsync(
+        string paymentId,
+        string version,
+        CancellationToken cancellationToken = default)
+    {
+        RequireArgument(paymentId, nameof(paymentId));
+        RequireArgument(version, nameof(version));
+
+        var path = $"TinkoffPay/transactions/{Uri.EscapeDataString(paymentId)}/versions/{Uri.EscapeDataString(version)}/link";
+
+        return SendGetJsonAsync<TBankTinkoffPayLinkResponse>("TinkoffPay link", path, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает SVG QR-кода T‑Pay для десктопов методом TinkoffPay QR.
+    /// </summary>
+    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/t-pay/">приём платежей через T‑Pay</see>.</remarks>
+    public Task<string> GetTinkoffPayQrAsync(
+        string paymentId,
+        CancellationToken cancellationToken = default)
+    {
+        RequireArgument(paymentId, nameof(paymentId));
+
+        var path = $"TinkoffPay/{Uri.EscapeDataString(paymentId)}/QR";
+
+        return SendGetSvgAsync("TinkoffPay QR", path, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает SVG QR-кода SberPay для десктопов методом SberPay QR.
+    /// </summary>
+    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/sberpay/">приём платежей через SberPay</see>.</remarks>
+    public Task<string> GetSberPayQrAsync(
+        string paymentId,
+        CancellationToken cancellationToken = default)
+    {
+        RequireArgument(paymentId, nameof(paymentId));
+
+        var path = $"SberPay/{Uri.EscapeDataString(paymentId)}/QR";
+
+        return SendGetSvgAsync("SberPay QR", path, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает ссылку SberPay для редиректа покупателя методом SberPay link.
+    /// </summary>
+    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/sberpay/">приём платежей через SberPay</see>.</remarks>
+    public Task<TBankSberPayLinkResponse> GetSberPayLinkAsync(
+        string paymentId,
+        CancellationToken cancellationToken = default)
+    {
+        RequireArgument(paymentId, nameof(paymentId));
+
+        var path = $"SberPay/transactions/{Uri.EscapeDataString(paymentId)}/link";
+
+        return SendGetJsonAsync<TBankSberPayLinkResponse>("SberPay link", path, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает подписанный DeepLink Mir Pay методом MirPay/GetDeepLink.
+    /// </summary>
+    /// <remarks>
+    /// DeepLink открывается только на мобильных устройствах Android — приложение Mir Pay доступно исключительно на Android.
+    /// Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/mirpay/">оплата через Mir Pay на своей платежной форме</see>.
+    /// </remarks>
+    public Task<TBankMirPayDeepLinkResponse> GetMirPayDeepLinkAsync(
+        TBankMirPayDeepLinkRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankMirPayDeepLinkRequest, TBankMirPayDeepLinkResponse>("MirPay/GetDeepLink", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает ссылку Alfa Pay методом AlfaPay/link/get.
+    /// </summary>
+    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/alfapay">приём платежей через Alfa Pay на своей платежной форме</see>.</remarks>
+    public Task<TBankAlfaPayLinkResponse> GetAlfaPayLinkAsync(
+        TBankAlfaPayLinkRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankAlfaPayLinkRequest, TBankAlfaPayLinkResponse>("AlfaPay/link/get", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Отправляет закрывающий чек в кассу методом SendClosingReceipt (ФФД 1.2).
+    /// </summary>
+    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/fiscalization/">работа с чеками (фискализация)</see>.</remarks>
+    public Task<TBankSendClosingReceiptResponse> SendClosingReceiptAsync(
+        TBankSendClosingReceiptFfd12Request request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendPostAsync<TBankSendClosingReceiptFfd12Request, TBankSendClosingReceiptResponse>("SendClosingReceipt", CashboxEndpoint("SendClosingReceipt"), signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Отправляет закрывающий чек в кассу методом SendClosingReceipt (ФФД 1.05).
+    /// </summary>
+    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/fiscalization/">работа с чеками (фискализация)</see>.</remarks>
+    public Task<TBankSendClosingReceiptResponse> SendClosingReceiptAsync(
+        TBankSendClosingReceiptFfd105Request request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendPostAsync<TBankSendClosingReceiptFfd105Request, TBankSendClosingReceiptResponse>("SendClosingReceipt", CashboxEndpoint("SendClosingReceipt"), signedRequest, cancellationToken);
+    }
+
+    // Cashbox endpoints live at the host root (/cashbox/...), not under the /v2/ base path.
+    private Uri CashboxEndpoint(string method) => new(options.ResolveBaseAddress(), $"/cashbox/{method}");
+
+    private static void RequireArgument(string value, string parameterName)
+    {
+        ArgumentNullException.ThrowIfNull(value, parameterName);
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new ArgumentException($"{parameterName} must not be empty.", parameterName);
+        }
+    }
+
     private string? CreateToken<TRequest>(TRequest request, string? suppliedToken)
     {
         if (!options.AutoGenerateToken)
@@ -390,59 +590,144 @@ public sealed class TBankPaymentsClient
         return TBankToken.Create(request, options.Password);
     }
 
-    private async Task<TResponse> SendAsync<TRequest, TResponse>(
+    private Task<TResponse> SendAsync<TRequest, TResponse>(
         string method,
         TRequest request,
         CancellationToken cancellationToken)
         where TResponse : TBankResponse
     {
-        var endpoint = new Uri(options.ResolveBaseAddress(), method);
-        HttpResponseMessage response;
+        return SendPostAsync<TRequest, TResponse>(method, new Uri(options.ResolveBaseAddress(), method), request, cancellationToken);
+    }
 
-        try
+    private Task<TResponse> SendPostAsync<TRequest, TResponse>(
+        string method,
+        Uri endpoint,
+        TRequest request,
+        CancellationToken cancellationToken)
+        where TResponse : TBankResponse
+    {
+        var httpRequest = CreateRequest(HttpMethod.Post, endpoint);
+        httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
+
+        return SendJsonAsync<TResponse>(method, httpRequest, cancellationToken);
+    }
+
+    private Task<TResponse> SendGetJsonAsync<TResponse>(
+        string method,
+        string relativePath,
+        CancellationToken cancellationToken)
+        where TResponse : TBankResponse
+    {
+        var endpoint = new Uri(options.ResolveBaseAddress(), relativePath);
+
+        return SendJsonAsync<TResponse>(method, CreateRequest(HttpMethod.Get, endpoint), cancellationToken);
+    }
+
+    private Task<string> SendGetSvgAsync(
+        string method,
+        string relativePath,
+        CancellationToken cancellationToken)
+    {
+        var endpoint = new Uri(options.ResolveBaseAddress(), relativePath);
+        var httpRequest = CreateRequest(HttpMethod.Get, endpoint);
+        httpRequest.Headers.Accept.ParseAdd("image/svg");
+
+        return SendSvgAsync(method, httpRequest, cancellationToken);
+    }
+
+    private HttpRequestMessage CreateRequest(HttpMethod httpMethod, Uri endpoint)
+    {
+        var httpRequest = new HttpRequestMessage(httpMethod, endpoint);
+        httpRequest.Headers.UserAgent.ParseAdd(UserAgent);
+
+        return httpRequest;
+    }
+
+    private async Task<HttpResponseMessage> SendCoreAsync(
+        string method,
+        HttpRequestMessage httpRequest,
+        CancellationToken cancellationToken)
+    {
+        using (httpRequest)
         {
-            using var httpRequest = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            try
             {
-                Content = JsonContent.Create(request, options: JsonOptions)
-            };
-            httpRequest.Headers.UserAgent.ParseAdd(UserAgent);
-
-            response = await httpClient.SendAsync(httpRequest, cancellationToken)
-                .ConfigureAwait(false);
+                return await httpClient.SendAsync(httpRequest, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (HttpRequestException exception)
+            {
+                throw new TBankAcquiringTransportException($"T-Bank {method} request failed before a response was received.", exception);
+            }
         }
-        catch (HttpRequestException exception)
-        {
-            throw new TBankAcquiringTransportException($"T-Bank {method} request failed before a response was received.", exception);
-        }
+    }
 
-        using (response)
-        {
+    private async Task<TResponse> SendJsonAsync<TResponse>(
+        string method,
+        HttpRequestMessage httpRequest,
+        CancellationToken cancellationToken)
+        where TResponse : TBankResponse
+    {
+        using var response = await SendCoreAsync(method, httpRequest, cancellationToken).ConfigureAwait(false);
+
 #if NETSTANDARD2_0
-            var responseBody = await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+        var responseBody = await response.Content.ReadAsStringAsync()
+            .ConfigureAwait(false);
 #else
-            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken)
-                .ConfigureAwait(false);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken)
+            .ConfigureAwait(false);
 #endif
 
-            var result = DeserializeResponse<TResponse>(method, response.StatusCode, responseBody);
-            result = result with
-            {
-                Metadata = CreateResponseMetadata(response, responseBody, options.CaptureRawResponseBody)
-            };
+        var result = DeserializeResponse<TResponse>(method, response.StatusCode, responseBody);
+        result = result with
+        {
+            Metadata = CreateResponseMetadata(response, responseBody, options.CaptureRawResponseBody)
+        };
 
-            if (options.ThrowOnTBankApiError && !result.Success)
-            {
-                throw new TBankAcquiringApiException(
-                    $"T-Bank {method} returned ErrorCode '{result.ErrorCode}'.",
-                    result.ErrorCode,
-                    result.Message,
-                    result.Details,
-                    response.StatusCode);
-            }
-
-            return result;
+        if (options.ThrowOnTBankApiError && !result.Success)
+        {
+            throw new TBankAcquiringApiException(
+                $"T-Bank {method} returned ErrorCode '{result.ErrorCode}'.",
+                result.ErrorCode,
+                result.Message,
+                result.Details,
+                response.StatusCode);
         }
+
+        return result;
+    }
+
+    private async Task<string> SendSvgAsync(
+        string method,
+        HttpRequestMessage httpRequest,
+        CancellationToken cancellationToken)
+    {
+        using var response = await SendCoreAsync(method, httpRequest, cancellationToken).ConfigureAwait(false);
+
+#if NETSTANDARD2_0
+        var responseBody = await response.Content.ReadAsStringAsync()
+            .ConfigureAwait(false);
+#else
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken)
+            .ConfigureAwait(false);
+#endif
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new TBankAcquiringProtocolException(
+                $"T-Bank {method} returned HTTP {(int)response.StatusCode} ({response.StatusCode}).",
+                response.StatusCode,
+                CreateBodyPreview(responseBody));
+        }
+
+        if (string.IsNullOrWhiteSpace(responseBody))
+        {
+            throw new TBankAcquiringProtocolException(
+                $"T-Bank {method} returned an empty SVG body. HTTP {(int)response.StatusCode} ({response.StatusCode}).",
+                response.StatusCode);
+        }
+
+        return responseBody;
     }
 
     private static TBankAcquiringResponseMetadata CreateResponseMetadata(

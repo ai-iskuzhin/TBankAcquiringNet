@@ -290,6 +290,72 @@ public sealed record TBankQrMembersListRequest
 }
 
 /// <summary>
+/// Запрос SendClosingReceipt для отправки закрывающего чека в кассу (ФФД 1.2).
+/// </summary>
+public sealed record TBankSendClosingReceiptFfd12Request
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Идентификатор платежа в T-Bank.</summary>
+    public required string PaymentId { get; init; }
+
+    /// <summary>Данные фискального чека формата ФФД 1.2.</summary>
+    public required TBankReceiptFfd12 Receipt { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос SendClosingReceipt для отправки закрывающего чека в кассу (ФФД 1.05).
+/// </summary>
+public sealed record TBankSendClosingReceiptFfd105Request
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Идентификатор платежа в T-Bank.</summary>
+    public required string PaymentId { get; init; }
+
+    /// <summary>Данные фискального чека формата ФФД 1.05.</summary>
+    public required TBankReceiptFfd105 Receipt { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос MirPay/GetDeepLink для получения подписанного DeepLink Mir Pay.
+/// </summary>
+public sealed record TBankMirPayDeepLinkRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Идентификатор платежа в T-Bank.</summary>
+    public required string PaymentId { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
+/// Запрос AlfaPay/link/get для получения ссылки Alfa Pay.
+/// </summary>
+public sealed record TBankAlfaPayLinkRequest
+{
+    /// <summary>Ключ терминала. Обычно заполняется клиентом автоматически.</summary>
+    public string? TerminalKey { get; init; }
+
+    /// <summary>Идентификатор платежа в T-Bank.</summary>
+    public required string PaymentId { get; init; }
+
+    /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>
+    public string? Token { get; init; }
+}
+
+/// <summary>
 /// Запрос SbpPayTest для создания тестовой платежной сессии СБП.
 /// </summary>
 /// <remarks>Работает только на тестовом терминале и эмулирует сценарии проведения платежа.</remarks>
