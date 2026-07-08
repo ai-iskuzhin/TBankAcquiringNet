@@ -8,6 +8,12 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 1.1.1
+
+### Fixed
+
+- `GetTinkoffPayQrAsync` and `GetSberPayQrAsync` now send `Accept: image/svg+xml` instead of the non-standard `image/svg`, which T-Bank rejected with HTTP 415 (surfaced as `TBankAcquiringProtocolException`). QR retrieval now succeeds.
+
 ## 1.1.0
 
 ### Added
