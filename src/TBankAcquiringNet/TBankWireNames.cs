@@ -29,6 +29,11 @@ internal static class TBankWireNames
             TBankPaymentStatus.REJECTED => "REJECTED",
             TBankPaymentStatus.AUTH_FAIL => "AUTH_FAIL",
             TBankPaymentStatus.CANCEL_CHECKING => "CANCEL_CHECKING",
+            TBankPaymentStatus.CHECKING => "CHECKING",
+            TBankPaymentStatus.CHECKED => "CHECKED",
+            TBankPaymentStatus.COMPLETING => "COMPLETING",
+            TBankPaymentStatus.COMPLETED => "COMPLETED",
+            TBankPaymentStatus.PROCESSING => "PROCESSING",
             _ => "UNKNOWN"
         };
     }

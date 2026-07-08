@@ -93,6 +93,11 @@ internal sealed class TBankPaymentStatusJsonConverter : JsonConverter<TBankPayme
             "DEADLINE_EXPIRED" => TBankPaymentStatus.DEADLINE_EXPIRED,
             "REJECTED" => TBankPaymentStatus.REJECTED,
             "AUTH_FAIL" => TBankPaymentStatus.AUTH_FAIL,
+            "CHECKING" => TBankPaymentStatus.CHECKING,
+            "CHECKED" => TBankPaymentStatus.CHECKED,
+            "COMPLETING" => TBankPaymentStatus.COMPLETING,
+            "COMPLETED" => TBankPaymentStatus.COMPLETED,
+            "PROCESSING" => TBankPaymentStatus.PROCESSING,
             _ => throw TBankWireParsing.UnknownEnumValue("payment status", value)
         };
     }

@@ -75,5 +75,20 @@ public enum TBankPaymentStatus
     REJECTED,
 
     /// <summary>Ошибка платежа или не пройдена проверка 3-D Secure.</summary>
-    AUTH_FAIL
+    AUTH_FAIL,
+
+    /// <summary>Выполняется проверка платежа.</summary>
+    CHECKING,
+
+    /// <summary>Проверка платежа завершена.</summary>
+    CHECKED,
+
+    /// <summary>Начато завершение расчётов по платежу.</summary>
+    COMPLETING,
+
+    /// <summary>Расчёты по платежу завершены.</summary>
+    COMPLETED,
+
+    /// <summary>Платёж обрабатывается.</summary>
+    PROCESSING
 }
