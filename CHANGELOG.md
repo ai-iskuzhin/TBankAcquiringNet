@@ -8,6 +8,17 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 1.4.0
+
+### Added
+
+- Added own-payment-form (PCI DSS) card-binding and 3DS methods to `TBankPaymentsClient`: `Check3dsVersionAsync` (detects the 3DS protocol version by card), `AttachCardAsync` (completes card binding on the merchant's own form), and `Submit3DSAuthorizationAsync` / `Submit3DSAuthorizationV2Async` (confirm 3DS v1.0 / v2.1, sent as `application/x-www-form-urlencoded`). These carry the encrypted `CardData` — treat it as PCI-sensitive.
+- Added `GetConfirmOperationAsync` (operation report over cards, T‑Pay, and Mir Pay). The report is delivered via exactly one of `CallbackUrl` or `EmailList` (up to three `TBankConfirmOperationEmail` recipients). Its `Token` is signed from `TerminalKey` and the password only, and the response `ErrorCode` (numeric on the wire) is parsed into a string; check `Success` on both the response and each `PaymentIdList` item. When `ThrowOnTBankApiError` is enabled, a top-level `Success = false` raises `TBankAcquiringApiException` (consistent with the other methods); per-item failures stay in `PaymentIdList`. A `null` `PaymentIdList` is normalized to an empty list.
+
+### Notes
+
+- The 3DS **3DS Method** and **ACSUrl** steps run in the customer's browser (redirect / hidden iframe against the issuer ACS) and are intentionally not part of this server-to-server SDK. The SDK covers the preceding `Check3dsVersionAsync` and the concluding `Submit3DSAuthorization*Async`.
+
 ## 1.3.0
 
 ### Added
