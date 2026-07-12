@@ -8,6 +8,13 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 1.3.0
+
+### Added
+
+- Added customer and card management methods to `TBankPaymentsClient`: `AddCustomerAsync`, `GetCustomerAsync`, `RemoveCustomerAsync`, `AddCardAsync` (bank binding form), `GetAddCardStateAsync`, `GetCardListAsync`, and `RemoveCardAsync`, plus the recurring-payment `ChargeAsync` (COF by `RebillId`). Added the `TBankCardStatus` enum (`A`/`D`) and a `BankMemberId` field on `TBankChargeQrRequest`.
+- `GetCardListAsync` returns `IReadOnlyList<TBankCard>` — T-Bank responds with a top-level JSON array; a JSON error object is surfaced as `TBankAcquiringApiException` (with `ErrorCode`/`Message`/`Details`), regardless of `ThrowOnTBankApiError`.
+
 ## 1.2.0
 
 ### Added
