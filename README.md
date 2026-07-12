@@ -151,7 +151,7 @@ new TBankPaymentsClientOptions
 
 | Метод T-Bank | SDK API | Документация |
 | --- | --- | --- |
-| Провести платеж по сохраненным реквизитам | — | [charge](https://developer.tbank.ru/eacq/api/charge) |
+| Провести платеж по сохраненным реквизитам | `ChargeAsync` | [charge](https://developer.tbank.ru/eacq/api/charge) |
 | Автоплатеж по QR СБП | `ChargeQrAsync` | [charge-qr](https://developer.tbank.ru/eacq/api/charge-qr) |
 
 ### Отмена, статус и справки
@@ -167,14 +167,14 @@ new TBankPaymentsClientOptions
 
 | Метод T-Bank | SDK API | Документация |
 | --- | --- | --- |
-| Зарегистрировать покупателя | — | [add-customer](https://developer.tbank.ru/eacq/api/add-customer) |
-| Получить данные покупателя | — | [get-customer](https://developer.tbank.ru/eacq/api/get-customer) |
-| Удалить данные покупателя | — | [remove-customer](https://developer.tbank.ru/eacq/api/remove-customer) |
-| Инициировать привязку карты к покупателю | — | [add-card](https://developer.tbank.ru/eacq/api/add-card) |
+| Зарегистрировать покупателя | `AddCustomerAsync` | [add-customer](https://developer.tbank.ru/eacq/api/add-customer) |
+| Получить данные покупателя | `GetCustomerAsync` | [get-customer](https://developer.tbank.ru/eacq/api/get-customer) |
+| Удалить данные покупателя | `RemoveCustomerAsync` | [remove-customer](https://developer.tbank.ru/eacq/api/remove-customer) |
+| Инициировать привязку карты к покупателю | `AddCardAsync` | [add-card](https://developer.tbank.ru/eacq/api/add-card) |
 | Привязать карту | — | [attach-card](https://developer.tbank.ru/eacq/api/attach-card) |
-| Получить статус привязки карты | — | [get-add-card-state](https://developer.tbank.ru/eacq/api/get-add-card-state) |
-| Получить список карт покупателя | — | [get-card-list](https://developer.tbank.ru/eacq/api/get-card-list) |
-| Удалить привязанную карту покупателя | — | [remove-card](https://developer.tbank.ru/eacq/api/remove-card) |
+| Получить статус привязки карты | `GetAddCardStateAsync` | [get-add-card-state](https://developer.tbank.ru/eacq/api/get-add-card-state) |
+| Получить список карт покупателя | `GetCardListAsync` | [get-card-list](https://developer.tbank.ru/eacq/api/get-card-list) |
+| Удалить привязанную карту покупателя | `RemoveCardAsync` | [remove-card](https://developer.tbank.ru/eacq/api/remove-card) |
 
 ### Чеки
 
@@ -281,6 +281,46 @@ await client.SendClosingReceiptAsync(new TBankSendClosingReceiptFfd12Request
     }
 });
 ```
+
+## Привязка карты и рекуррентные платежи
+
+Зарегистрируйте покупателя, инициируйте привязку карты через форму банка и проводите последующие платежи по сохранённому `RebillId`:
+
+```csharp
+// 1. Зарегистрировать покупателя
+await client.AddCustomerAsync(new TBankAddCustomerRequest
+{
+    CustomerKey = "customer-42",
+    Email = "customer@example.com"
+});
+
+// 2. Инициировать привязку карты — перенаправьте покупателя на PaymentURL
+var add = await client.AddCardAsync(new TBankAddCardRequest
+{
+    CustomerKey = "customer-42",
+    CheckType = "3DS"                 // NO, HOLD, 3DS, 3DSHOLD
+});
+Console.WriteLine(add.PaymentURL);
+
+// 3. После возврата покупателя — проверить статус привязки
+var state = await client.GetAddCardStateAsync(new TBankGetAddCardStateRequest { RequestKey = add.RequestKey! });
+if (state.Status == TBankPaymentStatus.COMPLETED)
+    Console.WriteLine(state.RebillId);   // сохраните RebillId для рекуррентных платежей
+
+// 4. Список и удаление карт
+IReadOnlyList<TBankCard> cards = await client.GetCardListAsync(new TBankGetCardListRequest { CustomerKey = "customer-42" });
+await client.RemoveCardAsync(new TBankRemoveCardRequest { CustomerKey = "customer-42", CardId = cards[0].CardId! });
+
+// 5. Рекуррентный платёж по сохранённому RebillId (после Init нового платежа)
+var charge = await client.ChargeAsync(new TBankChargeRequest
+{
+    PaymentId = paymentId,            // из Init
+    RebillId = rebillId
+});
+Console.WriteLine(charge.Status);      // CONFIRMED или REJECTED
+```
+
+`GetCardListAsync` возвращает `IReadOnlyList<TBankCard>` — в отличие от остальных методов, T-Bank отдаёт список карт JSON-массивом. Поскольку типизированного ответа с `Success`/`ErrorCode` тут нет, при ошибке (JSON-объект с `ErrorCode`) метод всегда выбрасывает `TBankAcquiringApiException`, независимо от `ThrowOnTBankApiError` — оборачивайте вызов в `try/catch`.
 
 ## Приём уведомлений
 
