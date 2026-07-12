@@ -155,6 +155,35 @@ internal static class TBankPaymentRequestValidator
         }
     }
 
+    public static void Validate(TBankAddCustomerRequest request) => RequireText(request.CustomerKey, nameof(request.CustomerKey));
+
+    public static void Validate(TBankGetCustomerRequest request) => RequireText(request.CustomerKey, nameof(request.CustomerKey));
+
+    public static void Validate(TBankRemoveCustomerRequest request) => RequireText(request.CustomerKey, nameof(request.CustomerKey));
+
+    public static void Validate(TBankAddCardRequest request) => RequireText(request.CustomerKey, nameof(request.CustomerKey));
+
+    public static void Validate(TBankGetAddCardStateRequest request) => RequireText(request.RequestKey, nameof(request.RequestKey));
+
+    public static void Validate(TBankGetCardListRequest request) => RequireText(request.CustomerKey, nameof(request.CustomerKey));
+
+    public static void Validate(TBankRemoveCardRequest request)
+    {
+        RequireText(request.CustomerKey, nameof(request.CustomerKey));
+        RequireText(request.CardId, nameof(request.CardId));
+    }
+
+    public static void Validate(TBankChargeRequest request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+        RequireText(request.RebillId, nameof(request.RebillId));
+
+        if (request.SendEmail == true)
+        {
+            RequireText(request.InfoEmail, nameof(request.InfoEmail));
+        }
+    }
+
     private static void RequireText(string? value, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(value))

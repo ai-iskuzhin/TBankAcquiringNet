@@ -179,6 +179,26 @@ internal sealed class TBankRecurrentJsonConverter : JsonConverter<TBankRecurrent
     }
 }
 
+internal sealed class TBankCardStatusJsonConverter : JsonConverter<TBankCardStatus>
+{
+    public override TBankCardStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var value = reader.GetString();
+
+        return value switch
+        {
+            "A" => TBankCardStatus.ACTIVE,
+            "D" => TBankCardStatus.DELETED,
+            _ => throw TBankWireParsing.UnknownEnumValue("card status", value)
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, TBankCardStatus value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(TBankWireNames.FormatCardStatus(value));
+    }
+}
+
 internal sealed class TBankAccountQrStatusJsonConverter : JsonConverter<TBankAccountQrStatus>
 {
     public override TBankAccountQrStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

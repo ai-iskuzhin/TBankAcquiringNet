@@ -1300,6 +1300,228 @@ public sealed class TBankPaymentsClientTests
         Assert.Equal(JsonValueKind.Object, item.GetProperty("SectoralItemProps").ValueKind);
     }
 
+    private static TBankPaymentsClient CreateCardClient(HttpClient httpClient) =>
+        new(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+    [Fact]
+    public async Task AddCustomerAsync_PostsSignedRequestToAddCustomerEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {"TerminalKey":"TestB","CustomerKey":"cust-1","ErrorCode":"0","Success":true}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.AddCustomerAsync(new TBankAddCustomerRequest
+        {
+            CustomerKey = "cust-1",
+            Email = "a@test.ru",
+            Phone = "+79031234567"
+        });
+
+        Assert.Equal("https://example.test/v2/AddCustomer", handler.RequestUri?.ToString());
+        Assert.True(response.Success);
+        Assert.Equal("cust-1", response.CustomerKey);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("cust-1", root.GetProperty("CustomerKey").GetString());
+        Assert.Equal("a@test.ru", root.GetProperty("Email").GetString());
+        Assert.Equal("+79031234567", root.GetProperty("Phone").GetString());
+        Assert.Equal("d1fa98403c6a3cd77bdf0fcde9040c3b20a2925c90722450aca755d56e70d1b6", root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetCustomerAsync_PostsSignedRequestAndReadsEmailPhone()
+    {
+        using var handler = new RecordingHandler("""
+            {"TerminalKey":"TestB","CustomerKey":"cust-1","ErrorCode":"0","Success":true,"Email":"a@test.ru","Phone":"+79031234567"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.GetCustomerAsync(new TBankGetCustomerRequest { CustomerKey = "cust-1" });
+
+        Assert.Equal("https://example.test/v2/GetCustomer", handler.RequestUri?.ToString());
+        Assert.Equal("a@test.ru", response.Email);
+        Assert.Equal("+79031234567", response.Phone);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        Assert.Equal("252f5ba2745d2a81b802a378f5a31eb3e9361c424b1cb2a723f5dd0efd20da08", document.RootElement.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task RemoveCustomerAsync_PostsSignedRequestToRemoveCustomerEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {"TerminalKey":"TestB","CustomerKey":"cust-1","ErrorCode":"0","Success":true}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.RemoveCustomerAsync(new TBankRemoveCustomerRequest { CustomerKey = "cust-1" });
+
+        Assert.Equal("https://example.test/v2/RemoveCustomer", handler.RequestUri?.ToString());
+        Assert.True(response.Success);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        Assert.Equal("252f5ba2745d2a81b802a378f5a31eb3e9361c424b1cb2a723f5dd0efd20da08", document.RootElement.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task AddCardAsync_PostsSignedRequestAndReturnsPaymentUrl()
+    {
+        using var handler = new RecordingHandler("""
+            {"PaymentId":6155312072,"TerminalKey":"TestB","CustomerKey":"cust-1","RequestKey":"ed989549-d3be-4758-95c7-22647e03f9ec","ErrorCode":"0","Success":true,"PaymentURL":"https://securepayments.tinkoff.ru/addcard/82a31a62"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.AddCardAsync(new TBankAddCardRequest
+        {
+            CustomerKey = "cust-1",
+            CheckType = "NO",
+            ResidentState = true
+        });
+
+        Assert.Equal("https://example.test/v2/AddCard", handler.RequestUri?.ToString());
+        Assert.Equal("6155312072", response.PaymentId);
+        Assert.Equal("ed989549-d3be-4758-95c7-22647e03f9ec", response.RequestKey);
+        Assert.StartsWith("https://securepayments.tinkoff.ru/addcard/", response.PaymentURL);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.Equal("NO", root.GetProperty("CheckType").GetString());
+        Assert.True(root.GetProperty("ResidentState").GetBoolean());
+        Assert.Equal("9cba680368cbc8cac29def4e45354611fdd0aa2f1314b88f3ce7ed0d0c96617b", root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetAddCardStateAsync_PostsSignedRequestAndReadsStatus()
+    {
+        using var handler = new RecordingHandler("""
+            {"TerminalKey":"TestB","RequestKey":"req-1","Status":"COMPLETED","Success":true,"CardId":"156516516","RebillId":"134249124","ErrorCode":"0","CustomerKey":"cust-1"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.GetAddCardStateAsync(new TBankGetAddCardStateRequest { RequestKey = "req-1" });
+
+        Assert.Equal("https://example.test/v2/GetAddCardState", handler.RequestUri?.ToString());
+        Assert.Equal(TBankPaymentStatus.COMPLETED, response.Status);
+        Assert.Equal("156516516", response.CardId);
+        Assert.Equal("134249124", response.RebillId);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        Assert.Equal("a3670ca9ba35f44d1c3db5f37797a7f2be66a10a74b07fae4ead6057605854fd", document.RootElement.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetCardListAsync_ReturnsCardArray()
+    {
+        using var handler = new RecordingHandler("""
+            [
+              {"CardId":"881900","Pan":"518223******0036","Status":"A","RebillId":"6155312073","CardType":2,"ExpDate":"1122"},
+              {"CardId":"881901","Pan":"518223******0044","Status":"D","CardType":0,"ExpDate":"1223"}
+            ]
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var cards = await client.GetCardListAsync(new TBankGetCardListRequest { CustomerKey = "cust-1", SavedCard = true });
+
+        Assert.Equal("https://example.test/v2/GetCardList", handler.RequestUri?.ToString());
+        Assert.Equal(2, cards.Count);
+        Assert.Equal("881900", cards[0].CardId);
+        Assert.Equal("518223******0036", cards[0].Pan);
+        Assert.Equal(TBankCardStatus.ACTIVE, cards[0].Status);
+        Assert.Equal(2, cards[0].CardType);
+        Assert.Equal(TBankCardStatus.DELETED, cards[1].Status);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.True(root.GetProperty("SavedCard").GetBoolean());
+        Assert.Equal("48b725186e7ab43522093a014aa1c0b42bad62dd742fcff0854299f5ae7d2dd2", root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetCardListAsync_ThrowsApiExceptionWhenBodyIsErrorObject()
+    {
+        using var handler = new RecordingHandler("""
+            {"ErrorCode":"7","Message":"Неверные параметры","Details":"Покупатель не найден"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var exception = await Assert.ThrowsAsync<TBankAcquiringApiException>(
+            () => client.GetCardListAsync(new TBankGetCardListRequest { CustomerKey = "cust-1" }));
+
+        Assert.Equal("7", exception.ErrorCode);
+        Assert.Equal("Неверные параметры", exception.ErrorMessage);
+        Assert.Equal("Покупатель не найден", exception.Details);
+    }
+
+    [Fact]
+    public async Task ChargeAsync_ThrowsValidationWhenSendEmailWithoutInfoEmail()
+    {
+        using var handler = new RecordingHandler("{}");
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        await Assert.ThrowsAsync<TBankAcquiringValidationException>(
+            () => client.ChargeAsync(new TBankChargeRequest { PaymentId = "20150", RebillId = "r-1", SendEmail = true }));
+    }
+
+    [Fact]
+    public async Task RemoveCardAsync_PostsSignedRequestAndReadsCardStatus()
+    {
+        using var handler = new RecordingHandler("""
+            {"TerminalKey":"TestB","Status":"D","CustomerKey":"cust-1","CardId":"card-1","CardType":0,"Success":true,"ErrorCode":"0"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.RemoveCardAsync(new TBankRemoveCardRequest { CustomerKey = "cust-1", CardId = "card-1" });
+
+        Assert.Equal("https://example.test/v2/RemoveCard", handler.RequestUri?.ToString());
+        Assert.Equal(TBankCardStatus.DELETED, response.Status);
+        Assert.Equal(0, response.CardType);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.Equal("card-1", root.GetProperty("CardId").GetString());
+        Assert.Equal("ba49e2e907c50abe0f076ad92da63343e4b0a03e1cd6e42af02e9bad9b4d916d", root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task ChargeAsync_PostsSignedRequestToChargeEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {"TerminalKey":"TestB","Amount":100000,"OrderId":"21050","Success":true,"Status":"CONFIRMED","PaymentId":"13660","ErrorCode":"0"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.ChargeAsync(new TBankChargeRequest { PaymentId = "20150", RebillId = "rebill-1" });
+
+        Assert.Equal("https://example.test/v2/Charge", handler.RequestUri?.ToString());
+        Assert.Equal(TBankPaymentStatus.CONFIRMED, response.Status);
+        Assert.Equal(TBankAmount.FromMinorUnits(100000), response.Amount);
+        Assert.Equal("13660", response.PaymentId);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.Equal("20150", root.GetProperty("PaymentId").GetString());
+        Assert.Equal("rebill-1", root.GetProperty("RebillId").GetString());
+        Assert.Equal("7e08029d24e35b2d050635e93a8924aebbc249ae2162b3a06720281c4c2ffb0a", root.GetProperty("Token").GetString());
+    }
+
     private sealed class RecordingHandler(string responseBody, HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
     {
         public Dictionary<string, string> ResponseHeaders { get; } = [];

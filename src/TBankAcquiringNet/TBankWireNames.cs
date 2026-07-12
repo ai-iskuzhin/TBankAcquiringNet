@@ -88,4 +88,14 @@ internal static class TBankWireNames
             _ => "UNKNOWN"
         };
     }
+
+    public static string FormatCardStatus(TBankCardStatus value)
+    {
+        return value switch
+        {
+            TBankCardStatus.ACTIVE => "A",
+            TBankCardStatus.DELETED => "D",
+            _ => "UNKNOWN"
+        };
+    }
 }

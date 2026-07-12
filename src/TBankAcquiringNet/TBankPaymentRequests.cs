@@ -402,4 +402,7 @@ public sealed record TBankChargeQrRequest
 
     /// <summary>Email покупателя для уведомления.</summary>
     public string? InfoEmail { get; init; }
+
+    /// <summary>Идентификатор банка плательщика. Обязателен для привязки карты другого банка.</summary>
+    public string? BankMemberId { get; init; }
 }

@@ -578,6 +578,146 @@ public sealed class TBankPaymentsClient
         return SendPostAsync<TBankSendClosingReceiptFfd105Request, TBankSendClosingReceiptResponse>("SendClosingReceipt", CashboxEndpoint("SendClosingReceipt"), signedRequest, cancellationToken);
     }
 
+    /// <summary>
+    /// Регистрирует покупателя в связке с терминалом методом AddCustomer.
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/add-customer">AddCustomer</see>.</remarks>
+    public Task<TBankAddCustomerResponse> AddCustomerAsync(
+        TBankAddCustomerRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankAddCustomerRequest, TBankAddCustomerResponse>("AddCustomer", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает данные покупателя методом GetCustomer.
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/get-customer">GetCustomer</see>.</remarks>
+    public Task<TBankGetCustomerResponse> GetCustomerAsync(
+        TBankGetCustomerRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankGetCustomerRequest, TBankGetCustomerResponse>("GetCustomer", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Удаляет сохраненные данные покупателя методом RemoveCustomer.
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/remove-customer">RemoveCustomer</see>.</remarks>
+    public Task<TBankRemoveCustomerResponse> RemoveCustomerAsync(
+        TBankRemoveCustomerRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankRemoveCustomerRequest, TBankRemoveCustomerResponse>("RemoveCustomer", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Инициирует привязку карты к покупателю через форму привязки банка методом AddCard.
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/add-card">AddCard</see>. Возвращает <c>PaymentURL</c> — ссылку на форму привязки T-Bank.</remarks>
+    public Task<TBankAddCardResponse> AddCardAsync(
+        TBankAddCardRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankAddCardRequest, TBankAddCardResponse>("AddCard", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает статус привязки карты методом GetAddCardState.
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/get-add-card-state">GetAddCardState</see>.</remarks>
+    public Task<TBankGetAddCardStateResponse> GetAddCardStateAsync(
+        TBankGetAddCardStateRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankGetAddCardStateRequest, TBankGetAddCardStateResponse>("GetAddCardState", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Возвращает список привязанных карт покупателя методом GetCardList.
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/get-card-list">GetCardList</see>. Успешный ответ — JSON-массив карт.</remarks>
+    public Task<IReadOnlyList<TBankCard>> GetCardListAsync(
+        TBankGetCardListRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendPostListAsync<TBankGetCardListRequest, TBankCard>("GetCardList", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Удаляет привязанную карту покупателя методом RemoveCard.
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/remove-card">RemoveCard</see>.</remarks>
+    public Task<TBankRemoveCardResponse> RemoveCardAsync(
+        TBankRemoveCardRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankRemoveCardRequest, TBankRemoveCardResponse>("RemoveCard", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Проводит платеж по сохраненным реквизитам карты (RebillId) методом Charge.
+    /// </summary>
+    /// <remarks>
+    /// API: <see href="https://developer.tbank.ru/eacq/api/charge">Charge</see>. Сценарии:
+    /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/nonPCI/autopay/">без PCI DSS</see>,
+    /// <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/autopay/">с PCI DSS</see>.
+    /// </remarks>
+    public Task<TBankChargeResponse> ChargeAsync(
+        TBankChargeRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankChargeRequest, TBankChargeResponse>("Charge", signedRequest, cancellationToken);
+    }
+
     // Cashbox endpoints live at the host root (/cashbox/...), not under the /v2/ base path.
     private Uri CashboxEndpoint(string method) => new(options.ResolveBaseAddress(), $"/cashbox/{method}");
 
@@ -746,7 +886,7 @@ public sealed class TBankPaymentsClient
         // rather than returning JSON as if it were an image.
         if (StartsWithJsonObject(responseBody))
         {
-            var (errorCode, errorMessage) = TryReadErrorEnvelope(responseBody);
+            var (errorCode, errorMessage, _) = TryReadErrorEnvelope(responseBody);
             throw new TBankAcquiringProtocolException(
                 $"T-Bank {method} returned a JSON body instead of an SVG image. ErrorCode '{errorCode}', Message '{errorMessage}'.",
                 response.StatusCode,
@@ -771,24 +911,78 @@ public sealed class TBankPaymentsClient
         return false;
     }
 
-    private static (string? ErrorCode, string? Message) TryReadErrorEnvelope(string responseBody)
+    private static (string? ErrorCode, string? Message, string? Details) TryReadErrorEnvelope(string responseBody)
     {
         try
         {
             using var document = JsonDocument.Parse(responseBody);
             if (document.RootElement.ValueKind != JsonValueKind.Object)
             {
-                return (null, null);
+                return (null, null, null);
             }
 
             var errorCode = document.RootElement.TryGetProperty("ErrorCode", out var code) ? code.GetString() : null;
             var message = document.RootElement.TryGetProperty("Message", out var msg) ? msg.GetString() : null;
+            var details = document.RootElement.TryGetProperty("Details", out var det) ? det.GetString() : null;
 
-            return (errorCode, message);
+            return (errorCode, message, details);
         }
         catch (JsonException)
         {
-            return (null, null);
+            return (null, null, null);
+        }
+    }
+
+    private Task<IReadOnlyList<TItem>> SendPostListAsync<TRequest, TItem>(
+        string method,
+        TRequest request,
+        CancellationToken cancellationToken)
+    {
+        var httpRequest = CreateRequest(HttpMethod.Post, new Uri(options.ResolveBaseAddress(), method));
+        httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
+
+        return SendJsonListAsync<TItem>(method, httpRequest, cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<TItem>> SendJsonListAsync<TItem>(
+        string method,
+        HttpRequestMessage httpRequest,
+        CancellationToken cancellationToken)
+    {
+        using var response = await SendCoreAsync(method, httpRequest, cancellationToken).ConfigureAwait(false);
+
+#if NETSTANDARD2_0
+        var responseBody = await response.Content.ReadAsStringAsync()
+            .ConfigureAwait(false);
+#else
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken)
+            .ConfigureAwait(false);
+#endif
+
+        // The success response is a JSON array (e.g. GetCardList). An error is a JSON object with
+        // ErrorCode/Message — surface it rather than deserializing it as a list.
+        if (StartsWithJsonObject(responseBody))
+        {
+            var (errorCode, errorMessage, details) = TryReadErrorEnvelope(responseBody);
+            throw new TBankAcquiringApiException(
+                $"T-Bank {method} returned ErrorCode '{errorCode}'.",
+                errorCode,
+                errorMessage,
+                details,
+                response.StatusCode);
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<TItem>>(responseBody, JsonOptions) ?? [];
+        }
+        catch (JsonException exception)
+        {
+            throw new TBankAcquiringProtocolException(
+                $"T-Bank {method} response was not a valid JSON array. HTTP {(int)response.StatusCode} ({response.StatusCode}).",
+                response.StatusCode,
+                CreateBodyPreview(responseBody),
+                exception);
         }
     }
 
