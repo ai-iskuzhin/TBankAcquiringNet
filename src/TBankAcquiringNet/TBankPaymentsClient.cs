@@ -718,6 +718,143 @@ public sealed class TBankPaymentsClient
         return SendAsync<TBankChargeRequest, TBankChargeResponse>("Charge", signedRequest, cancellationToken);
     }
 
+    /// <summary>
+    /// Определяет версию 3DS по карте методом Check3dsVersion (для собственной платежной формы).
+    /// </summary>
+    /// <remarks>
+    /// API: <see href="https://developer.tbank.ru/eacq/api/check-3-ds-version">Check3dsVersion</see>.
+    /// Запрос содержит зашифрованные данные карты (PCI) в <see cref="TBankCheck3dsVersionRequest.CardData"/>.
+    /// </remarks>
+    public Task<TBankCheck3dsVersionResponse> Check3dsVersionAsync(
+        TBankCheck3dsVersionRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankCheck3dsVersionRequest, TBankCheck3dsVersionResponse>("Check3dsVersion", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Завершает привязку карты на собственной платежной форме методом AttachCard.
+    /// </summary>
+    /// <remarks>
+    /// API: <see href="https://developer.tbank.ru/eacq/api/attach-card">AttachCard</see>.
+    /// Запрос содержит зашифрованные данные карты (PCI) в <see cref="TBankAttachCardRequest.CardData"/>.
+    /// При статусе <c>3DS_CHECKING</c> используйте <c>ACSUrl</c>/<c>MD</c>/<c>PaReq</c> и затем Submit3DSAuthorization.
+    /// </remarks>
+    public Task<TBankAttachCardResponse> AttachCardAsync(
+        TBankAttachCardRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        return SendAsync<TBankAttachCardRequest, TBankAttachCardResponse>("AttachCard", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Подтверждает прохождение 3DS v1.0 методом Submit3DSAuthorization (x-www-form-urlencoded).
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/submit-3-ds-authorization">Submit3DSAuthorization</see>.</remarks>
+    public Task<TBankSubmit3DSAuthorizationResponse> Submit3DSAuthorizationAsync(
+        TBankSubmit3DSAuthorizationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        var form = new List<KeyValuePair<string, string>>
+        {
+            new("MD", signedRequest.MD),
+            new("PaRes", signedRequest.PaRes),
+            new("TerminalKey", signedRequest.TerminalKey!),
+        };
+
+        if (signedRequest.PaymentId is not null)
+        {
+            form.Add(new("PaymentId", signedRequest.PaymentId));
+        }
+
+        if (signedRequest.Token is not null)
+        {
+            form.Add(new("Token", signedRequest.Token));
+        }
+
+        return SendFormAsync<TBankSubmit3DSAuthorizationResponse>("Submit3DSAuthorization", form, cancellationToken);
+    }
+
+    /// <summary>
+    /// Подтверждает прохождение 3DS v2.1 методом Submit3DSAuthorizationV2 (x-www-form-urlencoded).
+    /// </summary>
+    /// <remarks>API: <see href="https://developer.tbank.ru/eacq/api/submit-3-ds-authorization-v-2">Submit3DSAuthorizationV2</see>.</remarks>
+    public Task<TBankSubmit3DSAuthorizationResponse> Submit3DSAuthorizationV2Async(
+        TBankSubmit3DSAuthorizationV2Request request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey };
+        signedRequest = signedRequest with { Token = CreateToken(signedRequest, request.Token) };
+
+        var form = new List<KeyValuePair<string, string>>
+        {
+            new("PaymentId", signedRequest.PaymentId),
+            new("TerminalKey", signedRequest.TerminalKey!),
+        };
+
+        if (signedRequest.Token is not null)
+        {
+            form.Add(new("Token", signedRequest.Token));
+        }
+
+        return SendFormAsync<TBankSubmit3DSAuthorizationResponse>("Submit3DSAuthorizationV2", form, cancellationToken);
+    }
+
+    /// <summary>
+    /// Генерирует справку по операциям методом getConfirmOperation.
+    /// </summary>
+    /// <remarks>
+    /// API: <see href="https://developer.tbank.ru/eacq/api/get-confirm-operation">getConfirmOperation</see>.
+    /// Token формируется только из Password и TerminalKey. Работает по картам, T-Pay и Mir Pay.
+    /// При <see cref="TBankPaymentsClientOptions.ThrowOnTBankApiError"/> верхнеуровневый
+    /// <c>Success = false</c> приводит к <see cref="TBankAcquiringApiException"/>; ошибки по отдельным
+    /// платежам всегда остаются в <see cref="TBankGetConfirmOperationResponse.PaymentIdList"/>.
+    /// </remarks>
+    public async Task<TBankGetConfirmOperationResponse> GetConfirmOperationAsync(
+        TBankGetConfirmOperationRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        TBankPaymentRequestValidator.Validate(request);
+
+        // getConfirmOperation signs only TerminalKey + Password (not CallbackUrl/PaymentIdList).
+        var token = options.AutoGenerateToken
+            ? TBankToken.Create(new { options.TerminalKey }, options.Password)
+            : request.Token;
+
+        var signedRequest = request with { TerminalKey = options.TerminalKey, Token = token };
+
+        var response = await SendPostRawJsonAsync<TBankGetConfirmOperationRequest, TBankGetConfirmOperationResponse>(
+            "getConfirmOperation",
+            signedRequest,
+            static result => (result.Success, result.ErrorCode, result.Message),
+            cancellationToken).ConfigureAwait(false);
+
+        // System.Text.Json overwrites the [] initializer when the payload sends an explicit null.
+        return response.PaymentIdList is null ? response with { PaymentIdList = [] } : response;
+    }
+
     // Cashbox endpoints live at the host root (/cashbox/...), not under the /v2/ base path.
     private Uri CashboxEndpoint(string method) => new(options.ResolveBaseAddress(), $"/cashbox/{method}");
 
@@ -931,6 +1068,78 @@ public sealed class TBankPaymentsClient
         {
             return (null, null, null);
         }
+    }
+
+    private Task<TResponse> SendFormAsync<TResponse>(
+        string method,
+        IEnumerable<KeyValuePair<string, string>> fields,
+        CancellationToken cancellationToken)
+        where TResponse : TBankResponse
+    {
+        var httpRequest = CreateRequest(HttpMethod.Post, new Uri(options.ResolveBaseAddress(), method));
+        httpRequest.Content = new FormUrlEncodedContent(fields);
+
+        return SendJsonAsync<TResponse>(method, httpRequest, cancellationToken);
+    }
+
+    private async Task<TResponse> SendPostRawJsonAsync<TRequest, TResponse>(
+        string method,
+        TRequest request,
+        Func<TResponse, (bool Success, string? ErrorCode, string? Message)> errorInspector,
+        CancellationToken cancellationToken)
+    {
+        var httpRequest = CreateRequest(HttpMethod.Post, new Uri(options.ResolveBaseAddress(), method));
+        httpRequest.Content = JsonContent.Create(request, options: JsonOptions);
+
+        using var response = await SendCoreAsync(method, httpRequest, cancellationToken).ConfigureAwait(false);
+
+#if NETSTANDARD2_0
+        var responseBody = await response.Content.ReadAsStringAsync()
+            .ConfigureAwait(false);
+#else
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken)
+            .ConfigureAwait(false);
+#endif
+
+        if (string.IsNullOrWhiteSpace(responseBody))
+        {
+            throw new TBankAcquiringProtocolException(
+                $"T-Bank {method} response body was empty. HTTP {(int)response.StatusCode} ({response.StatusCode}).",
+                response.StatusCode);
+        }
+
+        TResponse result;
+        try
+        {
+            result = JsonSerializer.Deserialize<TResponse>(responseBody, JsonOptions)
+                ?? throw new TBankAcquiringProtocolException(
+                    $"T-Bank {method} response body was empty after deserialization.",
+                    response.StatusCode,
+                    CreateBodyPreview(responseBody));
+        }
+        catch (JsonException exception)
+        {
+            throw new TBankAcquiringProtocolException(
+                $"T-Bank {method} response body was not valid JSON. HTTP {(int)response.StatusCode} ({response.StatusCode}).",
+                response.StatusCode,
+                CreateBodyPreview(responseBody),
+                exception);
+        }
+
+        // Keep strict-mode behavior consistent with SendJsonAsync: surface a top-level failure as an
+        // exception. Per-item failures inside the response are partial results and are left in place.
+        var (success, errorCode, errorMessage) = errorInspector(result);
+        if (options.ThrowOnTBankApiError && !success)
+        {
+            throw new TBankAcquiringApiException(
+                $"T-Bank {method} returned ErrorCode '{errorCode}'.",
+                errorCode,
+                errorMessage,
+                null,
+                response.StatusCode);
+        }
+
+        return result;
     }
 
     private Task<IReadOnlyList<TItem>> SendPostListAsync<TRequest, TItem>(

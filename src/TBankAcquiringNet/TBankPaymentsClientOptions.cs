@@ -41,6 +41,10 @@ public sealed class TBankPaymentsClientOptions
 
     /// <summary>Сохранять сырое тело ответа в Metadata.RawResponseBody.</summary>
     /// <value>false по умолчанию, чтобы случайно не хранить чувствительные данные.</value>
+    /// <remarks>
+    /// Тело сохраняется как есть, без маскирования: оно может содержать Token, RebillId и другие
+    /// чувствительные поля ответа. Включайте только для отладки и не логируйте результат в открытом виде.
+    /// </remarks>
     public bool CaptureRawResponseBody { get; init; }
 
     internal Uri ResolveBaseAddress()

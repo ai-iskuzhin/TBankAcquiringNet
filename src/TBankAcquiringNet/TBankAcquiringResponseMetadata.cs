@@ -26,6 +26,6 @@ public sealed class TBankAcquiringResponseMetadata
     /// <summary>Заголовки ответа и тела ответа.</summary>
     public IReadOnlyDictionary<string, string[]> Headers { get; }
 
-    /// <summary>Сырое тело ответа, если включен CaptureRawResponseBody.</summary>
+    /// <summary>Сырое тело ответа, если включен CaptureRawResponseBody. Хранится без маскирования — может содержать Token и другие чувствительные поля.</summary>
     public string? RawResponseBody { get; }
 }

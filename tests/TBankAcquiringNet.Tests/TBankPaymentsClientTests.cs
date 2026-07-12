@@ -1522,6 +1522,245 @@ public sealed class TBankPaymentsClientTests
         Assert.Equal("7e08029d24e35b2d050635e93a8924aebbc249ae2162b3a06720281c4c2ffb0a", root.GetProperty("Token").GetString());
     }
 
+    [Fact]
+    public async Task Check3dsVersionAsync_PostsSignedRequestToCheck3dsVersionEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":true,"ErrorCode":"0","Version":"2.1.0","TdsServerTransID":"tds-1","ThreeDSMethodURL":"https://acs.test/method","PaymentSystem":"Visa"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.Check3dsVersionAsync(new TBankCheck3dsVersionRequest
+        {
+            PaymentId = "13660",
+            CardData = "encrypted-card"
+        });
+
+        Assert.Equal("https://example.test/v2/Check3dsVersion", handler.RequestUri?.ToString());
+        Assert.Equal("2.1.0", response.Version);
+        Assert.Equal("tds-1", response.TdsServerTransID);
+        Assert.Equal("https://acs.test/method", response.ThreeDSMethodURL);
+        Assert.Equal("Visa", response.PaymentSystem);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("13660", root.GetProperty("PaymentId").GetString());
+        Assert.Equal("encrypted-card", root.GetProperty("CardData").GetString());
+        Assert.Equal("706979be67c1849fae179f707001847f230bfaaf69e11a4ec50f7325de8fc4b0", root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task AttachCardAsync_PostsSignedRequestToAttachCardEndpoint()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":true,"ErrorCode":"0","TerminalKey":"TestB","CustomerKey":"cust-1","RequestKey":"req-1","CardId":"card-1","Status":"COMPLETED","RebillId":"6155312073"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.AttachCardAsync(new TBankAttachCardRequest
+        {
+            RequestKey = "req-1",
+            CardData = "encrypted-card"
+        });
+
+        Assert.Equal("https://example.test/v2/AttachCard", handler.RequestUri?.ToString());
+        Assert.Equal("card-1", response.CardId);
+        Assert.Equal(TBankPaymentStatus.COMPLETED, response.Status);
+        Assert.Equal("6155312073", response.RebillId);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("req-1", root.GetProperty("RequestKey").GetString());
+        Assert.Equal("encrypted-card", root.GetProperty("CardData").GetString());
+        Assert.Equal("02", root.GetProperty("deviceChannel").GetString());
+        Assert.Equal("aef52fa348e53f2122c30e5f32420a79de3569ca1eadfd871efd59179cdadf36", root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task AttachCardAsync_ReadsThreeDsCheckingFields()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":true,"ErrorCode":"0","TerminalKey":"TestB","RequestKey":"req-1","Status":"3DS_CHECKING","ACSUrl":"https://acs.test/auth","MD":"md-1","PaReq":"pareq-1"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.AttachCardAsync(new TBankAttachCardRequest
+        {
+            RequestKey = "req-1",
+            CardData = "encrypted-card"
+        });
+
+        Assert.Equal(TBankPaymentStatus.THREE_DS_CHECKING, response.Status);
+        Assert.Equal("https://acs.test/auth", response.ACSUrl);
+        Assert.Equal("md-1", response.MD);
+        Assert.Equal("pareq-1", response.PaReq);
+    }
+
+    [Fact]
+    public async Task Submit3DSAuthorizationAsync_PostsFormEncodedSignedRequest()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":true,"ErrorCode":"0","TerminalKey":"TestB","OrderId":"order-1","Status":"CONFIRMED","PaymentId":"13660"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.Submit3DSAuthorizationAsync(new TBankSubmit3DSAuthorizationRequest
+        {
+            MD = "md-value",
+            PaRes = "pares-value",
+            PaymentId = "13660"
+        });
+
+        Assert.Equal("https://example.test/v2/Submit3DSAuthorization", handler.RequestUri?.ToString());
+        Assert.Equal("application/x-www-form-urlencoded", handler.ContentType);
+        Assert.Equal(TBankPaymentStatus.CONFIRMED, response.Status);
+        Assert.Equal("13660", response.PaymentId);
+
+        var form = ParseForm(handler.Body!);
+        Assert.Equal("md-value", form["MD"]);
+        Assert.Equal("pares-value", form["PaRes"]);
+        Assert.Equal("13660", form["PaymentId"]);
+        Assert.Equal("TestB", form["TerminalKey"]);
+        Assert.Equal("ff0dcde2bf0f1791a466a5c66ad4301959ba3871c4a2c6282baf6ee957fb933b", form["Token"]);
+    }
+
+    [Fact]
+    public async Task Submit3DSAuthorizationV2Async_PostsFormEncodedSignedRequest()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":true,"ErrorCode":"0","TerminalKey":"TestB","OrderId":"order-1","Status":"AUTHORIZED","PaymentId":"13660"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.Submit3DSAuthorizationV2Async(new TBankSubmit3DSAuthorizationV2Request
+        {
+            PaymentId = "13660"
+        });
+
+        Assert.Equal("https://example.test/v2/Submit3DSAuthorizationV2", handler.RequestUri?.ToString());
+        Assert.Equal("application/x-www-form-urlencoded", handler.ContentType);
+        Assert.Equal(TBankPaymentStatus.AUTHORIZED, response.Status);
+
+        var form = ParseForm(handler.Body!);
+        Assert.Equal("13660", form["PaymentId"]);
+        Assert.Equal("TestB", form["TerminalKey"]);
+        Assert.Equal("7187ad41e8bb6d4d2ce3a24aed7348030079b7e9c3a7207e99ac4eecfd8b2c36", form["Token"]);
+    }
+
+    [Fact]
+    public async Task GetConfirmOperationAsync_PostsTerminalKeyOnlyTokenAndReadsNumericErrorCode()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":true,"ErrorCode":0,"PaymentIdList":[{"Success":true,"ErrorCode":0,"PaymentId":13660},{"Success":false,"ErrorCode":7,"Message":"Not found","PaymentId":13661}]}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.GetConfirmOperationAsync(new TBankGetConfirmOperationRequest
+        {
+            CallbackUrl = "https://merchant.test/confirm",
+            PaymentIdList = [13660, 13661]
+        });
+
+        Assert.Equal("https://example.test/v2/getConfirmOperation", handler.RequestUri?.ToString());
+        Assert.True(response.Success);
+        Assert.Equal("0", response.ErrorCode);
+        Assert.Equal(2, response.PaymentIdList.Count);
+        Assert.Equal("13660", response.PaymentIdList[0].PaymentId);
+        Assert.False(response.PaymentIdList[1].Success);
+        Assert.Equal("7", response.PaymentIdList[1].ErrorCode);
+        Assert.Equal("13661", response.PaymentIdList[1].PaymentId);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.Equal("TestB", root.GetProperty("TerminalKey").GetString());
+        Assert.Equal("https://merchant.test/confirm", root.GetProperty("CallbackUrl").GetString());
+        Assert.Equal(13660, root.GetProperty("PaymentIdList")[0].GetInt64());
+        Assert.Equal("34d48df4308e9325eed6f5d3744c4379213a110183b203ed21a9d984cb965f8a", root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetConfirmOperationAsync_PostsEmailListDeliveryChannel()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":true,"ErrorCode":0,"PaymentIdList":[{"Success":true,"ErrorCode":0,"PaymentId":13660}]}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.GetConfirmOperationAsync(new TBankGetConfirmOperationRequest
+        {
+            EmailList = [new TBankConfirmOperationEmail { Email = "ops@merchant.test" }],
+            PaymentIdList = [13660]
+        });
+
+        Assert.True(response.Success);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+        Assert.False(root.TryGetProperty("CallbackUrl", out _));
+        Assert.Equal("ops@merchant.test", root.GetProperty("EmailList")[0].GetProperty("Email").GetString());
+        // Token is still TerminalKey + Password only (EmailList is a nested array, excluded from signing).
+        Assert.Equal("34d48df4308e9325eed6f5d3744c4379213a110183b203ed21a9d984cb965f8a", root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task GetConfirmOperationAsync_ThrowsApiExceptionOnTopLevelFailureInStrictMode()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":false,"ErrorCode":600,"Message":"Invalid token"}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TestB",
+            Password = "Dfsfh56dgKl",
+            BaseAddress = new Uri("https://example.test/v2/"),
+            ThrowOnTBankApiError = true
+        });
+
+        var exception = await Assert.ThrowsAsync<TBankAcquiringApiException>(() => client.GetConfirmOperationAsync(new TBankGetConfirmOperationRequest
+        {
+            CallbackUrl = "https://merchant.test/confirm",
+            PaymentIdList = [13660]
+        }));
+
+        Assert.Equal("600", exception.ErrorCode);
+        Assert.Equal("Invalid token", exception.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task GetConfirmOperationAsync_NormalizesNullPaymentIdListToEmpty()
+    {
+        using var handler = new RecordingHandler("""
+            {"Success":false,"ErrorCode":600,"Message":"Invalid token","PaymentIdList":null}
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = CreateCardClient(httpClient);
+
+        var response = await client.GetConfirmOperationAsync(new TBankGetConfirmOperationRequest
+        {
+            CallbackUrl = "https://merchant.test/confirm",
+            PaymentIdList = [13660]
+        });
+
+        Assert.False(response.Success);
+        Assert.NotNull(response.PaymentIdList);
+        Assert.Empty(response.PaymentIdList);
+    }
+
+    private static Dictionary<string, string> ParseForm(string body) =>
+        body.Split('&').Select(pair => pair.Split('=', 2)).ToDictionary(
+            parts => Uri.UnescapeDataString(parts[0]),
+            parts => Uri.UnescapeDataString(parts.Length > 1 ? parts[1] : string.Empty));
+
     private sealed class RecordingHandler(string responseBody, HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
     {
         public Dictionary<string, string> ResponseHeaders { get; } = [];
@@ -1538,12 +1777,15 @@ public sealed class TBankPaymentsClientTests
 
         public string? Accept { get; private set; }
 
+        public string? ContentType { get; private set; }
+
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             RequestUri = request.RequestUri;
             Method = request.Method;
             UserAgent = request.Headers.UserAgent.ToString();
             Accept = request.Headers.Accept.ToString();
+            ContentType = request.Content?.Headers.ContentType?.MediaType;
             Body = request.Content is null ? null : await request.Content.ReadAsStringAsync(cancellationToken);
 
             var response = new HttpResponseMessage(statusCode)

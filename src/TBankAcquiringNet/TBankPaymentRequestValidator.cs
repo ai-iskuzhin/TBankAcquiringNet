@@ -184,6 +184,59 @@ internal static class TBankPaymentRequestValidator
         }
     }
 
+    public static void Validate(TBankCheck3dsVersionRequest request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+        RequireText(request.CardData, nameof(request.CardData));
+    }
+
+    public static void Validate(TBankAttachCardRequest request)
+    {
+        RequireText(request.RequestKey, nameof(request.RequestKey));
+        RequireText(request.CardData, nameof(request.CardData));
+
+        if (request.DATA is { Count: > 20 })
+        {
+            throw new TBankAcquiringValidationException("DATA cannot contain more than 20 pairs.");
+        }
+    }
+
+    public static void Validate(TBankSubmit3DSAuthorizationRequest request)
+    {
+        RequireText(request.MD, nameof(request.MD));
+        RequireText(request.PaRes, nameof(request.PaRes));
+    }
+
+    public static void Validate(TBankSubmit3DSAuthorizationV2Request request)
+    {
+        RequireText(request.PaymentId, nameof(request.PaymentId));
+    }
+
+    public static void Validate(TBankGetConfirmOperationRequest request)
+    {
+        var hasCallbackUrl = !string.IsNullOrWhiteSpace(request.CallbackUrl);
+        var hasEmailList = request.EmailList is { Count: > 0 };
+
+        if (hasCallbackUrl == hasEmailList)
+        {
+            throw new TBankAcquiringValidationException(
+                $"Exactly one of {nameof(request.CallbackUrl)} or {nameof(request.EmailList)} is required.");
+        }
+
+        if (hasEmailList)
+        {
+            foreach (var recipient in request.EmailList!)
+            {
+                RequireText(recipient?.Email, $"{nameof(request.EmailList)}.{nameof(TBankConfirmOperationEmail.Email)}");
+            }
+        }
+
+        if (request.PaymentIdList is not { Count: > 0 })
+        {
+            throw new TBankAcquiringValidationException($"{nameof(request.PaymentIdList)} must contain at least one payment id.");
+        }
+    }
+
     private static void RequireText(string? value, string parameterName)
     {
         if (string.IsNullOrWhiteSpace(value))
