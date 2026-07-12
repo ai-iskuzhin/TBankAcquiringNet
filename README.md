@@ -106,11 +106,11 @@ new TBankPaymentsClientOptions
 
 | Метод T-Bank | SDK API | Документация |
 | --- | --- | --- |
-| Проверить версию 3DS | — | [check-3-ds-version](https://developer.tbank.ru/eacq/api/check-3-ds-version) |
-| Пройти этап 3DS Method | — | [3-ds-method](https://developer.tbank.ru/eacq/api/3-ds-method) |
-| Отправить запрос в банк-эмитент для прохождения 3DS | — | [acs-url](https://developer.tbank.ru/eacq/api/acs-url) |
-| Подтвердить прохождение 3DS v1.0 | — | [submit-3-ds-authorization](https://developer.tbank.ru/eacq/api/submit-3-ds-authorization) |
-| Подтвердить прохождение 3DS v2.1 | — | [submit-3-ds-authorization-v-2](https://developer.tbank.ru/eacq/api/submit-3-ds-authorization-v-2) |
+| Проверить версию 3DS | `Check3dsVersionAsync` | [check-3-ds-version](https://developer.tbank.ru/eacq/api/check-3-ds-version) |
+| Пройти этап 3DS Method | на стороне браузера | [3-ds-method](https://developer.tbank.ru/eacq/api/3-ds-method) |
+| Отправить запрос в банк-эмитент для прохождения 3DS | на стороне браузера | [acs-url](https://developer.tbank.ru/eacq/api/acs-url) |
+| Подтвердить прохождение 3DS v1.0 | `Submit3DSAuthorizationAsync` | [submit-3-ds-authorization](https://developer.tbank.ru/eacq/api/submit-3-ds-authorization) |
+| Подтвердить прохождение 3DS v2.1 | `Submit3DSAuthorizationV2Async` | [submit-3-ds-authorization-v-2](https://developer.tbank.ru/eacq/api/submit-3-ds-authorization-v-2) |
 
 ### СБП
 
@@ -161,7 +161,7 @@ new TBankPaymentsClientOptions
 | Отменить платеж | `CancelAsync` | [cancel](https://developer.tbank.ru/eacq/api/cancel) |
 | Получить статус платежа | `GetStateAsync` | [get-state](https://developer.tbank.ru/eacq/api/get-state) |
 | Получить статус заказа | `CheckOrderAsync` | [check-order](https://developer.tbank.ru/eacq/api/check-order) |
-| Получить справку по операции | — | [get-confirm-operation](https://developer.tbank.ru/eacq/api/get-confirm-operation) |
+| Получить справку по операции | `GetConfirmOperationAsync` | [get-confirm-operation](https://developer.tbank.ru/eacq/api/get-confirm-operation) |
 
 ### Привязка карты
 
@@ -171,7 +171,7 @@ new TBankPaymentsClientOptions
 | Получить данные покупателя | `GetCustomerAsync` | [get-customer](https://developer.tbank.ru/eacq/api/get-customer) |
 | Удалить данные покупателя | `RemoveCustomerAsync` | [remove-customer](https://developer.tbank.ru/eacq/api/remove-customer) |
 | Инициировать привязку карты к покупателю | `AddCardAsync` | [add-card](https://developer.tbank.ru/eacq/api/add-card) |
-| Привязать карту | — | [attach-card](https://developer.tbank.ru/eacq/api/attach-card) |
+| Привязать карту (собственная форма) | `AttachCardAsync` | [attach-card](https://developer.tbank.ru/eacq/api/attach-card) |
 | Получить статус привязки карты | `GetAddCardStateAsync` | [get-add-card-state](https://developer.tbank.ru/eacq/api/get-add-card-state) |
 | Получить список карт покупателя | `GetCardListAsync` | [get-card-list](https://developer.tbank.ru/eacq/api/get-card-list) |
 | Удалить привязанную карту покупателя | `RemoveCardAsync` | [remove-card](https://developer.tbank.ru/eacq/api/remove-card) |
@@ -321,6 +321,66 @@ Console.WriteLine(charge.Status);      // CONFIRMED или REJECTED
 ```
 
 `GetCardListAsync` возвращает `IReadOnlyList<TBankCard>` — в отличие от остальных методов, T-Bank отдаёт список карт JSON-массивом. Поскольку типизированного ответа с `Success`/`ErrorCode` тут нет, при ошибке (JSON-объект с `ErrorCode`) метод всегда выбрасывает `TBankAcquiringApiException`, независимо от `ThrowOnTBankApiError` — оборачивайте вызов в `try/catch`.
+
+## Собственная платёжная форма и 3DS
+
+> ⚠️ Методы `Check3dsVersionAsync`, `AttachCardAsync`, `Submit3DSAuthorizationAsync`/`Submit3DSAuthorizationV2Async` предназначены **только для мерчантов с сертификацией PCI DSS**, которые сами собирают данные карты. Поле `CardData` содержит зашифрованные реквизиты карты — не логируйте, не сохраняйте и не передавайте его в открытом виде. Большинству интеграций достаточно `AddCardAsync` и формы банка.
+
+```csharp
+// 1. Определить версию 3DS по карте
+var version = await client.Check3dsVersionAsync(new TBankCheck3dsVersionRequest
+{
+    PaymentId = "13660",
+    CardData = encryptedCardData        // зашифрованные реквизиты карты (PCI)
+});
+
+// 2. Завершить привязку карты на собственной форме
+var attach = await client.AttachCardAsync(new TBankAttachCardRequest
+{
+    RequestKey = add.RequestKey!,       // из AddCardAsync
+    CardData = encryptedCardData,
+    DeviceChannel = "02"                // 01 — приложение (APP), 02 — браузер (BRW)
+});
+
+// 3. Если требуется 3DS — статус 3DS_CHECKING с параметрами ACSUrl/MD/PaReq
+if (attach.Status == TBankPaymentStatus.THREE_DS_CHECKING)
+{
+    // Браузер покупателя проходит проверку на attach.ACSUrl, после чего ACS
+    // возвращает MD и PaRes (v1.0) на ваш TermUrl.
+    var result = await client.Submit3DSAuthorizationAsync(new TBankSubmit3DSAuthorizationRequest
+    {
+        MD = md,
+        PaRes = paRes
+    });
+    Console.WriteLine(result.Status);   // CONFIRMED, AUTHORIZED или REJECTED
+}
+```
+
+Этапы **3DS Method** и запрос к **ACSUrl** выполняются в браузере покупателя (перенаправление/скрытый iframe на стороне ACS банка-эмитента), поэтому в серверном SDK их нет — SDK предоставляет предшествующий `Check3dsVersionAsync` и завершающий `Submit3DSAuthorization*Async`. Для протокола 3DS v2.1 используйте `Submit3DSAuthorizationV2Async` (там подтверждение идёт по `PaymentId`).
+
+### Справка по операциям
+
+`GetConfirmOperationAsync` формирует справку по списку операций (карты, T‑Pay, Mir Pay). Справка доставляется ровно одним способом — через `CallbackUrl` **или** `EmailList` (до трёх адресов). Token подписывается только по `TerminalKey` и паролю, а `ErrorCode` в ответе приходит числом — SDK разбирает его в строку. Проверяйте `Success` и в самом ответе, и в каждом элементе `PaymentIdList`:
+
+```csharp
+var report = await client.GetConfirmOperationAsync(new TBankGetConfirmOperationRequest
+{
+    CallbackUrl = "https://merchant.example/confirm-callback",
+    PaymentIdList = [13660, 13661]
+});
+
+foreach (var item in report.PaymentIdList)
+    Console.WriteLine($"{item.PaymentId}: success={item.Success}, error={item.ErrorCode}");
+
+// Либо доставка по email вместо CallbackUrl:
+await client.GetConfirmOperationAsync(new TBankGetConfirmOperationRequest
+{
+    EmailList = [new TBankConfirmOperationEmail { Email = "ops@merchant.example" }],
+    PaymentIdList = [13660]
+});
+```
+
+В строгом режиме (`ThrowOnTBankApiError = true`) верхнеуровневый `Success = false` выбрасывает `TBankAcquiringApiException`, как и остальные методы; ошибки по отдельным платежам остаются в `PaymentIdList`.
 
 ## Приём уведомлений
 
