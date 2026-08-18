@@ -15,6 +15,19 @@
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
+  <!--
+    Russian Trusted CA (Минцифры) roots that sign the T-API TLS certificate. They are absent from
+    most OS/runtime trust stores, so they ship with the package and are wired up by
+    TBankHttpClientFactory. LogicalName is pinned so resource lookup does not depend on RootNamespace.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="Certificates/*.crt" LogicalName="TBankAcquiringNet.Certificates.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TBankAcquiringNet.Tests" />
+  </ItemGroup>
+
   <!-- Polyfills for language features (records, init, required, CallerArgumentExpression) on older targets. -->
   <ItemGroup>
     <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />

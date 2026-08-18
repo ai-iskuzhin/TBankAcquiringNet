@@ -8,6 +8,22 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
+## 1.5.0
+
+> **ОБНОВЛЕНИЕ ОБЯЗАТЕЛЬНО.** T-Bank перевёл T-API на TLS-сертификаты Минцифры России (Russian Trusted CA). Без этой версии **и** без перехода на `TBankHttpClientFactory` все запросы к `securepay.tinkoff.ru` и `rest-api-test.tinkoff.ru` завершаются ошибкой проверки TLS-сертификата. Обновления пакета самого по себе недостаточно — `new HttpClient()` продолжит падать.
+
+### Added
+
+- Встроены сертификаты Национального удостоверяющего центра Минцифры России (Russian Trusted CA), которыми подписан TLS-сертификат T-API: корневой `Russian Trusted Root CA` и промежуточные `Russian Trusted Sub CA` (2022 и 2024). Добавлены `TBankHttpClientFactory` (`CreateHttpClient` / `CreateHandler`), `TBankServerCertificateValidator` и `TBankTrustedCertificates`.
+- `TBankHttpClientFactory.CreateHttpClient()` — рекомендуемый способ создания транспорта; для `IHttpClientFactory` используйте `.ConfigurePrimaryHttpMessageHandler(TBankHttpClientFactory.CreateHandler)`.
+
+### Notes
+
+- **Это влияет на работоспособность интеграции.** `securepay.tinkoff.ru` и `rest-api-test.tinkoff.ru` уже отдают цепочку Минцифры, а не GlobalSign. Корень Минцифры отсутствует в хранилищах большинства ОС и рантаймов, поэтому обычный `new HttpClient()` падает с `AuthenticationException` (`PartialChain`, `certificate verify failed`, `unable to get local issuer certificate`, `PKIX path building failed`).
+- Проверка сертификата не ослабляется: встроенные корни задействуются только после отказа системного хранилища и только при ошибке цепочки. Несовпадение имени хоста, истёкший сертификат и посторонние центры сертификации по-прежнему отклоняются.
+- Встроена только RSA-цепочка. ГОСТ-сертификаты Минцифры (ГОСТ Р 34.10-2012) не встроены: .NET не проверяет ГОСТ-подписи и не поддерживает ГОСТ-шифронаборы TLS.
+- Альтернатива — установить корень Минцифры в системное хранилище; тогда встроенные сертификаты не требуются.
+
 ## 1.4.0
 
 ### Added

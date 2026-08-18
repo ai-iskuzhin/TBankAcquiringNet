@@ -16,7 +16,7 @@ public sealed class TBankPaymentsIntegrationTests
             return;
         }
 
-        using var httpClient = new HttpClient();
+        using var httpClient = TBankHttpClientFactory.CreateHttpClient();
         var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
         {
             TerminalKey = terminalKey,

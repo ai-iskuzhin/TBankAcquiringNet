@@ -20,6 +20,18 @@
   </tr>
 </table>
 
+> [!WARNING]
+> **Обновление обязательно для работы с T-API.** T-Bank перевёл `securepay.tinkoff.ru` и `rest-api-test.tinkoff.ru` на TLS-сертификаты Национального удостоверяющего центра Минцифры России (Russian Trusted CA) вместо GlobalSign. Их корень отсутствует в доверенных хранилищах большинства ОС, рантаймов и контейнерных образов, поэтому **все запросы к T-API падают** с `AuthenticationException` / `PartialChain` / `certificate verify failed` / `unable to get local issuer certificate` / `PKIX path building failed`.
+>
+> Начиная с этой версии сертификаты Минцифры встроены в пакет. Обновитесь и создавайте транспорт через `TBankHttpClientFactory`:
+>
+> ```csharp
+> using var httpClient = TBankHttpClientFactory.CreateHttpClient();
+> var client = new TBankPaymentsClient(httpClient, options);
+> ```
+>
+> Для `IHttpClientFactory` — `.ConfigurePrimaryHttpMessageHandler(TBankHttpClientFactory.CreateHandler)`. Просто обновить пакет **недостаточно**: `new HttpClient()` по-прежнему не будет доверять цепочке. Подробности и альтернатива через системное хранилище — [TLS-сертификаты Минцифры](#tls-сертификаты-минцифры).
+
 ## Установка
 
 ```bash
@@ -51,7 +63,8 @@ dotnet add package TBankAcquiringNet
 ```csharp
 using TBankAcquiringNet;
 
-using var httpClient = new HttpClient();
+// Доверяет корням Минцифры России, которыми подписан TLS-сертификат T-API.
+using var httpClient = TBankHttpClientFactory.CreateHttpClient();
 
 var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
 {
@@ -89,6 +102,51 @@ new TBankPaymentsClientOptions
 ```
 
 `Amount` указывается в минимальных единицах валюты (копейках для RUB) через `TBankAmount.FromMinorUnits`.
+
+## TLS-сертификаты Минцифры
+
+> [!IMPORTANT]
+> Переход уже произошёл на боевом и тестовом контурах. Без обновления пакета и перехода на `TBankHttpClientFactory` (или установки корня Минцифры в системное хранилище) интеграция не работает.
+
+TLS-сертификат T-API выпущен Национальным удостоверяющим центром Минцифры России (Russian Trusted CA), а не публичным CA. Его корень отсутствует в доверенных хранилищах большинства ОС, рантаймов и контейнерных образов, поэтому обычный `new HttpClient()` падает при обращении к `securepay.tinkoff.ru` и `rest-api-test.tinkoff.ru`:
+
+```text
+The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException:
+      The remote certificate is invalid because of errors in the certificate chain: PartialChain
+```
+
+В других стеках та же ошибка выглядит как `certificate verify failed`, `unable to get local issuer certificate` или `PKIX path building failed`.
+
+Корневой и промежуточные сертификаты Минцифры встроены в пакет. Создайте транспорт через `TBankHttpClientFactory`:
+
+```csharp
+using var httpClient = TBankHttpClientFactory.CreateHttpClient();
+var client = new TBankPaymentsClient(httpClient, options);
+```
+
+Проверка **не ослабляется**. Сначала работает штатная проверка платформы; встроенные корни задействуются, только если платформа отвергла цепочку и единственная претензия — ошибка цепочки. Несовпадение имени хоста, истёкший или отозванный сертификат, самоподписанный сертификат постороннего центра по-прежнему отклоняются. Если корень Минцифры уже установлен в системное хранилище, поведение не меняется.
+
+### Свои якоря доверия
+
+`TBankServerCertificateValidator` можно настроить — например, добавить корпоративный корень TLS-инспекции:
+
+```csharp
+var roots = TBankTrustedCertificates.CreateRootCertificates();
+roots.Add(corporateRoot);
+
+using var handler = new HttpClientHandler
+{
+    ServerCertificateCustomValidationCallback =
+        new TBankServerCertificateValidator(roots, TBankTrustedCertificates.CreateIntermediateCertificates()).Validate
+};
+```
+
+### Ограничения
+
+- В пакет входит только RSA-цепочка Минцифры. ГОСТ-сертификаты (ГОСТ Р 34.10-2012) намеренно не встроены: .NET не проверяет ГОСТ-подписи и не поддерживает ГОСТ-шифронаборы TLS, поэтому доверять им из .NET невозможно. Если T-API когда-нибудь перейдёт на ГОСТ-only TLS, потребуется прокси с поддержкой ГОСТ (например, stunnel с КриптоПро).
+- На .NET Framework нужна версия 4.7.1 или новее: в более ранних `HttpClientHandler.ServerCertificateCustomValidationCallback` выбрасывает `PlatformNotSupportedException`.
+- Альтернатива на уровне инфраструктуры — установить корень Минцифры в системное хранилище. Тогда встроенные сертификаты не понадобятся и любой `HttpClient` будет работать.
 
 ## Поддерживаемые методы
 
@@ -445,7 +503,9 @@ catch (TBankAcquiringProtocolException ex)
 Клиент принимает `HttpClient` от вызывающего кода, поэтому интегрируется с `IHttpClientFactory`:
 
 ```csharp
-services.AddHttpClient("tbank-acquiring");
+services
+    .AddHttpClient("tbank-acquiring")
+    .ConfigurePrimaryHttpMessageHandler(TBankHttpClientFactory.CreateHandler);
 
 services.AddSingleton(sp =>
 {
@@ -459,7 +519,7 @@ services.AddSingleton(sp =>
 });
 ```
 
-Если вы передаёте собственный `HttpClient`, SDK его не освобождает.
+Если вы передаёте собственный `HttpClient`, SDK его не освобождает. `ConfigurePrimaryHttpMessageHandler` обязателен: без него запросы упадут на проверке TLS-сертификата — см. [TLS-сертификаты Минцифры](#tls-сертификаты-минцифры).
 
 ## Разработка
 
@@ -489,6 +549,7 @@ dotnet test tests/TBankAcquiringNet.Tests.Integration/TBankAcquiringNet.Tests.In
 - [Дизайн Payments](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/payments-design.md)
 - [Обработка ошибок](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/error-handling.md)
 - [Тестирование](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/testing.md)
+- [TLS-сертификаты Минцифры](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/tls-certificates.md)
 - [Roadmap](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/roadmap.md)
 - [Процесс релиза](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/docs/release.md)
 - [Changelog](https://github.com/ai-iskuzhin/TBankAcquiringNet/blob/main/CHANGELOG.md)

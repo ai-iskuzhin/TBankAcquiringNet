@@ -65,6 +65,7 @@ Multisplit provider shop registration and payout flows live in separate reposito
 - Keep token/signature generation deterministic and covered by tests with known examples.
 - Prefer explicit redaction helpers for diagnostics and exceptions.
 - Do not persist secrets or add sample real credentials to the repository.
+- The bundled Минцифры (Russian Trusted CA) certificates in `src/TBankAcquiringNet/Certificates` are public trust anchors, not secrets. Their SHA-256 thumbprints are pinned in tests: replace a certificate only together with its pinned thumbprint, and never widen `TBankServerCertificateValidator` to accept a chain the platform rejected for anything other than `RemoteCertificateChainErrors`.
 - Avoid APIs that make it easy to accidentally send raw PAN/CVV unless the T-Bank flow explicitly requires it.
 
 ## Testing Expectations
@@ -106,6 +107,7 @@ Put detailed material in docs:
 - roadmap and implementation status: `docs/roadmap.md`
 - error-handling policy: `docs/error-handling.md`
 - test and credential handling notes: `docs/testing.md`
+- T-API TLS trust and the bundled Минцифры certificates: `docs/tls-certificates.md`
 - release process: `docs/release.md`
 
 Update `CHANGELOG.md` for notable public behavior, API, packaging, or documentation changes once the first public package version exists.
