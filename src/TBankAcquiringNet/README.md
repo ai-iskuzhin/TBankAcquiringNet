@@ -64,16 +64,24 @@ Console.WriteLine(response.PaymentURL);
 
 ## Уведомления
 
+Передайте тело запроса в `TryRead`: он разберёт уведомление и проверит подпись за один проход.
+
 ```csharp
-var result = TBankPaymentNotificationValidator.ValidateToken(notification, password);
+var body = await new StreamReader(Request.Body).ReadToEndAsync();
+var result = TBankPaymentNotificationValidator.TryRead(body, password, out var notification);
 
 if (result != TBankPaymentNotificationValidationResult.Valid)
 {
+    // MissingToken, InvalidToken или MalformedBody
     return Results.BadRequest();
 }
 
 return Results.Text(TBankPaymentNotificationValidator.SuccessResponseBody);
 ```
+
+Подпись считается по полям так, как их прислал банк, а не по разобранной модели: поле, которого SDK
+ещё не знает, участвует в подписи и доступно в `notification.AdditionalFields`, а статус, которого нет
+в `TBankPaymentStatus`, не роняет разбор — он останется строкой в `notification.StatusRaw`.
 
 ## Обработка ошибок
 
