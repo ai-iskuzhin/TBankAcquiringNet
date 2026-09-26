@@ -1,8 +1,10 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace TBankAcquiringNet;
@@ -41,7 +43,7 @@ public static class TBankToken
             throw new ArgumentException("Password must not be empty.", nameof(password));
         }
 
-        var values = GetTokenValues(payload);
+        var values = GetWireValues(payload) ?? GetTokenValues(payload);
         values["Password"] = password;
 
         var tokenInput = string.Concat(values.OrderBy(static item => item.Key, StringComparer.Ordinal).Select(static item => item.Value));
@@ -111,6 +113,34 @@ public static class TBankToken
 #endif
     }
 
+    /// <summary>
+    /// Поля, снятые с провода при разборе, если payload их сохранил.
+    /// </summary>
+    /// <remarks>
+    /// Подпись банк считает по присланному, а не по разобранному. Модель может не знать поля, не
+    /// разобрать статус или сформатировать число иначе — тогда подпись по модели не совпадёт,
+    /// хотя нотификация подлинная.
+    /// </remarks>
+    private static SortedDictionary<string, string>? GetWireValues<TPayload>(TPayload payload)
+    {
+        if (payload!.GetType().GetProperty("RawFields")?.GetValue(payload)
+            is not IEnumerable<KeyValuePair<string, string>> wireFields)
+        {
+            return null;
+        }
+
+        var values = new SortedDictionary<string, string>(StringComparer.Ordinal);
+        foreach (var field in wireFields)
+        {
+            if (!string.Equals(field.Key, "Token", StringComparison.Ordinal))
+            {
+                values[field.Key] = field.Value;
+            }
+        }
+
+        return values.Count == 0 ? null : values;
+    }
+
     private static SortedDictionary<string, string> GetTokenValues<TPayload>(TPayload payload)
     {
         var values = new SortedDictionary<string, string>(StringComparer.Ordinal);
@@ -123,6 +153,13 @@ public static class TBankToken
                 continue;
             }
 
+            // Поле, которого нет на проводе, банк подписать не мог; отмеченное — не подписывает.
+            if (property.GetCustomAttribute<JsonIgnoreAttribute>() is not null
+                || property.GetCustomAttribute<TBankUnsignedFieldAttribute>() is not null)
+            {
+                continue;
+            }
+
             var key = GetWireName(property);
             if (string.Equals(key, "Token", StringComparison.Ordinal))
             {
@@ -130,7 +167,20 @@ public static class TBankToken
             }
 
             var value = property.GetValue(payload);
-            if (value is null || !TryFormatTokenValue(value, out var formattedValue))
+            if (value is null)
+            {
+                continue;
+            }
+
+            // Поля, которых нет в модели, банк подписывает наравне с известными, поэтому словарь
+            // расширения раскрывается в отдельные значения, а не пропускается как перечисление.
+            if (property.GetCustomAttribute<JsonExtensionDataAttribute>() is not null)
+            {
+                AddExtensionValues(values, value);
+                continue;
+            }
+
+            if (!TryFormatTokenValue(value, out var formattedValue))
             {
                 continue;
             }
@@ -139,6 +189,76 @@ public static class TBankToken
         }
 
         return values;
+    }
+
+    private static void AddExtensionValues(SortedDictionary<string, string> values, object extensionData)
+    {
+        if (extensionData is not IEnumerable entries)
+        {
+            return;
+        }
+
+        foreach (var entry in entries)
+        {
+            if (entry is null)
+            {
+                continue;
+            }
+
+            var entryType = entry.GetType();
+            if (entryType.GetProperty("Key")?.GetValue(entry) is not string key
+                || key.Length == 0
+                || string.Equals(key, "Token", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var entryValue = entryType.GetProperty("Value")?.GetValue(entry);
+            if (entryValue is null)
+            {
+                continue;
+            }
+
+            if (entryValue is JsonElement element)
+            {
+                if (TryFormatJsonElement(element, out var formattedElement))
+                {
+                    values[key] = formattedElement;
+                }
+
+                continue;
+            }
+
+            if (TryFormatTokenValue(entryValue, out var formattedValue))
+            {
+                values[key] = formattedValue;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Значение так, как его подписал банк. Объекты и массивы в подпись не входят.
+    /// </summary>
+    private static bool TryFormatJsonElement(JsonElement element, out string formattedValue)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.String:
+                formattedValue = element.GetString() ?? string.Empty;
+                return true;
+            case JsonValueKind.Number:
+                formattedValue = element.GetRawText();
+                return true;
+            case JsonValueKind.True:
+                formattedValue = "true";
+                return true;
+            case JsonValueKind.False:
+                formattedValue = "false";
+                return true;
+            default:
+                formattedValue = string.Empty;
+                return false;
+        }
     }
 
     private static string GetWireName(PropertyInfo property)
@@ -155,6 +275,13 @@ public static class TBankToken
         {
             formattedValue = text;
             return true;
+        }
+
+        // Вложенный объект или массив банк в подпись не берёт; скаляр, приехавший как JsonElement,
+        // подписывается как обычное значение.
+        if (value is JsonElement jsonElement)
+        {
+            return TryFormatJsonElement(jsonElement, out formattedValue);
         }
 
         if (value is TBankAmount amount)

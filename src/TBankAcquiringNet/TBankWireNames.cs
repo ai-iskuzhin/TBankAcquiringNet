@@ -1,7 +1,57 @@
+using System;
+using System.Collections.Generic;
+
 namespace TBankAcquiringNet;
 
 internal static class TBankWireNames
 {
+    private static readonly Dictionary<string, TBankPaymentStatus> PaymentStatuses = new(StringComparer.Ordinal)
+    {
+        ["NEW"] = TBankPaymentStatus.NEW,
+        ["CANCELED"] = TBankPaymentStatus.CANCELED,
+        ["PREAUTHORIZING"] = TBankPaymentStatus.PREAUTHORIZING,
+        ["FORM_SHOWED"] = TBankPaymentStatus.FORM_SHOWED,
+        ["AUTHORIZING"] = TBankPaymentStatus.AUTHORIZING,
+        ["3DS_CHECKING"] = TBankPaymentStatus.THREE_DS_CHECKING,
+        ["3DS_CHECKED"] = TBankPaymentStatus.THREE_DS_CHECKED,
+        ["AUTHORIZED"] = TBankPaymentStatus.AUTHORIZED,
+        ["PAY_CHECKING"] = TBankPaymentStatus.PAY_CHECKING,
+        ["CONFIRMING"] = TBankPaymentStatus.CONFIRMING,
+        ["CONFIRM_CHECKING"] = TBankPaymentStatus.CONFIRM_CHECKING,
+        ["CONFIRMED"] = TBankPaymentStatus.CONFIRMED,
+        ["REVERSING"] = TBankPaymentStatus.REVERSING,
+        ["PARTIAL_REVERSED"] = TBankPaymentStatus.PARTIAL_REVERSED,
+        ["REVERSED"] = TBankPaymentStatus.REVERSED,
+        ["REFUNDING"] = TBankPaymentStatus.REFUNDING,
+        ["ASYNC_REFUNDING"] = TBankPaymentStatus.ASYNC_REFUNDING,
+        ["CANCEL_CHECKING"] = TBankPaymentStatus.CANCEL_CHECKING,
+        ["PARTIAL_REFUNDED"] = TBankPaymentStatus.PARTIAL_REFUNDED,
+        ["REFUNDED"] = TBankPaymentStatus.REFUNDED,
+        ["DEADLINE_EXPIRED"] = TBankPaymentStatus.DEADLINE_EXPIRED,
+        ["REJECTED"] = TBankPaymentStatus.REJECTED,
+        ["AUTH_FAIL"] = TBankPaymentStatus.AUTH_FAIL,
+        ["CHECKING"] = TBankPaymentStatus.CHECKING,
+        ["CHECKED"] = TBankPaymentStatus.CHECKED,
+        ["COMPLETING"] = TBankPaymentStatus.COMPLETING,
+        ["COMPLETED"] = TBankPaymentStatus.COMPLETED,
+        ["PROCESSING"] = TBankPaymentStatus.PROCESSING,
+    };
+
+    /// <summary>
+    /// Разбирает статус платежа с провода. Одна таблица на строгий и терпимый разбор: расходиться им
+    /// нельзя.
+    /// </summary>
+    public static bool TryParsePaymentStatus(string? value, out TBankPaymentStatus status)
+    {
+        if (value is not null && PaymentStatuses.TryGetValue(value, out status))
+        {
+            return true;
+        }
+
+        status = TBankPaymentStatus.UNKNOWN;
+        return false;
+    }
+
     public static string FormatPaymentStatus(TBankPaymentStatus value)
     {
         return value switch

@@ -442,17 +442,17 @@ await client.GetConfirmOperationAsync(new TBankGetConfirmOperationRequest
 
 ## Приём уведомлений
 
-T-Bank отправляет подписанное уведомление POST-запросом на ваш `NotificationURL`. Проверьте его token перед обработкой, затем верните ровно то тело успеха, которое ожидает API:
+T-Bank отправляет подписанное уведомление POST-запросом на ваш `NotificationURL`. Передайте тело запроса в `TryRead`: он разберёт уведомление и проверит подпись за один проход. Затем верните ровно то тело успеха, которое ожидает API:
 
 ```csharp
 using TBankAcquiringNet;
 
-// notification: TBankPaymentNotification, разобранный из тела запроса
-var result = TBankPaymentNotificationValidator.ValidateToken(notification, password);
+var body = await new StreamReader(Request.Body).ReadToEndAsync();
+var result = TBankPaymentNotificationValidator.TryRead(body, password, out var notification);
 
 if (result != TBankPaymentNotificationValidationResult.Valid)
 {
-    // result равен MissingToken или InvalidToken — отклоните запрос.
+    // MissingToken, InvalidToken или MalformedBody — отклоните запрос.
     return Results.BadRequest();
 }
 
@@ -461,7 +461,15 @@ if (result != TBankPaymentNotificationValidationResult.Valid)
 return Results.Text(TBankPaymentNotificationValidator.SuccessResponseBody);   // "OK"
 ```
 
-Валидатор пересчитывает token из полей уведомления и пароля терминала и сравнивает его с переданным `Token`.
+Подпись считается по полям так, как их прислал банк, а не по разобранной модели. Это важно:
+
+- поле, которого SDK ещё не знает, участвует в подписи и доступно в `notification.AdditionalFields`;
+- статус, которого нет в `TBankPaymentStatus`, не роняет разбор — `Status` станет `UNKNOWN`, а строка с провода останется в `notification.StatusRaw`;
+- вложенный `DATA` в подпись не входит и сохраняется как исходный JSON.
+
+Перегрузка `ValidateToken(notification, password)` остаётся для уведомления, собранного вручную: она считает подпись по свойствам модели, поэтому уведомление с неизвестным полем ей не проверить. Для входящего HTTP-запроса используйте `TryRead`.
+
+`NotificationURL` должен отдавать снаружи тот же `password`-терминал, которым вы подписываете запросы: подпись считается от пароля терминала.
 
 ## Обработка ошибок
 

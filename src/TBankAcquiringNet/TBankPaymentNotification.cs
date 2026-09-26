@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace TBankAcquiringNet;
@@ -17,8 +18,17 @@ public sealed record TBankPaymentNotification
     public bool Success { get; init; }
 
     /// <summary>Статус платежа.</summary>
-    [JsonConverter(typeof(TBankPaymentStatusJsonConverter))]
+    [JsonConverter(typeof(TBankNotificationPaymentStatusJsonConverter))]
     public TBankPaymentStatus Status { get; init; }
+
+    /// <summary>Статус так, как его прислал банк.</summary>
+    /// <remarks>
+    /// Заполняется разбором через <see cref="TBankPaymentNotificationValidator"/>. Незнакомый банку
+    /// статус попадает в <see cref="Status"/> как <see cref="TBankPaymentStatus.UNKNOWN"/>, но здесь
+    /// остаётся дословно: событие о деньгах не теряется из-за статуса, которого SDK ещё не знает.
+    /// </remarks>
+    [JsonIgnore]
+    public string? StatusRaw { get; init; }
 
     /// <summary>Идентификатор платежа в T-Bank.</summary>
     [JsonConverter(typeof(TBankStringJsonConverter))]
@@ -48,8 +58,33 @@ public sealed record TBankPaymentNotification
     public required string Token { get; init; }
 
     /// <summary>Дополнительные параметры платежа.</summary>
+    /// <remarks>
+    /// Банк присылает вложенный объект; здесь он сохраняется как исходный JSON. В подпись не входит:
+    /// подписываются только скалярные поля верхнего уровня.
+    /// </remarks>
+    [JsonConverter(typeof(TBankRawJsonJsonConverter))]
+    [TBankUnsignedField]
     public string? DATA { get; init; }
 
     /// <summary>Идентификатор сделки.</summary>
     public string? SpAccumulationId { get; init; }
+
+    /// <summary>Поля верхнего уровня, которых нет в модели.</summary>
+    /// <remarks>
+    /// Банк подписывает <em>все</em> присланные поля верхнего уровня, а не только известные SDK.
+    /// Поле, оставшееся за моделью, выпало бы из подписи, и нотификация получила бы
+    /// <see cref="TBankPaymentNotificationValidationResult.InvalidToken"/>, — поэтому неизвестные
+    /// поля сохраняются и проверяются наравне с остальными.
+    /// </remarks>
+    [JsonExtensionData]
+    public Dictionary<string, JsonElement>? AdditionalFields { get; init; }
+
+    /// <summary>Скалярные поля верхнего уровня так, как они пришли, кроме <c>Token</c>.</summary>
+    /// <remarks>
+    /// Заполняется разбором через <see cref="TBankPaymentNotificationValidator"/> и используется для
+    /// проверки подписи. Это и есть единственный способ подписать ровно то, что прислал банк: модель
+    /// может не знать поля, округлить число или не разобрать статус, а подпись считается по проводу.
+    /// </remarks>
+    [JsonIgnore]
+    public IReadOnlyDictionary<string, string>? RawFields { get; init; }
 }

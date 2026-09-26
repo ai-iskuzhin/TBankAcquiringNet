@@ -19,5 +19,12 @@ public enum TBankPaymentNotificationValidationResult
 
     /// <summary>Значение Token не совпадает с рассчитанной подписью.</summary>
     /// <remarks>Нотификацию нельзя считать доверенной.</remarks>
-    InvalidToken
+    InvalidToken,
+
+    /// <summary>Тело запроса не является объектом JSON или не разбирается как нотификация.</summary>
+    /// <remarks>
+    /// Обработчик должен отклонить запрос: доверять в нём нечему. Добавлено последним, чтобы
+    /// числовые значения прежних членов не сдвинулись.
+    /// </remarks>
+    MalformedBody
 }

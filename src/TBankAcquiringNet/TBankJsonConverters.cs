@@ -68,38 +68,10 @@ internal sealed class TBankPaymentStatusJsonConverter : JsonConverter<TBankPayme
     {
         var value = reader.GetString();
 
-        return value switch
-        {
-            "NEW" => TBankPaymentStatus.NEW,
-            "CANCELED" => TBankPaymentStatus.CANCELED,
-            "PREAUTHORIZING" => TBankPaymentStatus.PREAUTHORIZING,
-            "FORM_SHOWED" => TBankPaymentStatus.FORM_SHOWED,
-            "AUTHORIZING" => TBankPaymentStatus.AUTHORIZING,
-            "3DS_CHECKING" => TBankPaymentStatus.THREE_DS_CHECKING,
-            "3DS_CHECKED" => TBankPaymentStatus.THREE_DS_CHECKED,
-            "AUTHORIZED" => TBankPaymentStatus.AUTHORIZED,
-            "PAY_CHECKING" => TBankPaymentStatus.PAY_CHECKING,
-            "CONFIRMING" => TBankPaymentStatus.CONFIRMING,
-            "CONFIRM_CHECKING" => TBankPaymentStatus.CONFIRM_CHECKING,
-            "CONFIRMED" => TBankPaymentStatus.CONFIRMED,
-            "REVERSING" => TBankPaymentStatus.REVERSING,
-            "PARTIAL_REVERSED" => TBankPaymentStatus.PARTIAL_REVERSED,
-            "REVERSED" => TBankPaymentStatus.REVERSED,
-            "REFUNDING" => TBankPaymentStatus.REFUNDING,
-            "ASYNC_REFUNDING" => TBankPaymentStatus.ASYNC_REFUNDING,
-            "CANCEL_CHECKING" => TBankPaymentStatus.CANCEL_CHECKING,
-            "PARTIAL_REFUNDED" => TBankPaymentStatus.PARTIAL_REFUNDED,
-            "REFUNDED" => TBankPaymentStatus.REFUNDED,
-            "DEADLINE_EXPIRED" => TBankPaymentStatus.DEADLINE_EXPIRED,
-            "REJECTED" => TBankPaymentStatus.REJECTED,
-            "AUTH_FAIL" => TBankPaymentStatus.AUTH_FAIL,
-            "CHECKING" => TBankPaymentStatus.CHECKING,
-            "CHECKED" => TBankPaymentStatus.CHECKED,
-            "COMPLETING" => TBankPaymentStatus.COMPLETING,
-            "COMPLETED" => TBankPaymentStatus.COMPLETED,
-            "PROCESSING" => TBankPaymentStatus.PROCESSING,
-            _ => throw TBankWireParsing.UnknownEnumValue("payment status", value)
-        };
+        return TBankWireNames.TryParsePaymentStatus(value, out var status)
+            ? status
+            : throw TBankWireParsing.UnknownEnumValue("payment status", value);
+    
     }
 
     public override void Write(Utf8JsonWriter writer, TBankPaymentStatus value, JsonSerializerOptions options)
@@ -222,5 +194,62 @@ internal sealed class TBankAccountQrStatusJsonConverter : JsonConverter<TBankAcc
     public override void Write(Utf8JsonWriter writer, TBankAccountQrStatus value, JsonSerializerOptions options)
     {
         writer.WriteStringValue(TBankWireNames.FormatAccountQrStatus(value));
+    }
+}
+
+/// <summary>
+/// Статус платежа в нотификации, терпимый к незнакомым значениям.
+/// </summary>
+/// <remarks>
+/// В ответах на запросы незнакомый статус — это повод упасть: мы спросили и не поняли ответа.
+/// В нотификации — нет: банк уже провёл операцию, и уронить разбор значит потерять событие о
+/// деньгах из-за статуса, которого SDK ещё не знает. Такой статус становится
+/// <see cref="TBankPaymentStatus.UNKNOWN"/>, а строка с провода остаётся в
+/// <see cref="TBankPaymentNotification.StatusRaw"/>.
+/// </remarks>
+internal sealed class TBankNotificationPaymentStatusJsonConverter : JsonConverter<TBankPaymentStatus>
+{
+    public override TBankPaymentStatus Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            return TBankPaymentStatus.UNKNOWN;
+        }
+
+        return TBankWireNames.TryParsePaymentStatus(reader.GetString(), out var status)
+            ? status
+            : TBankPaymentStatus.UNKNOWN;
+    }
+
+    public override void Write(Utf8JsonWriter writer, TBankPaymentStatus value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(TBankWireNames.FormatPaymentStatus(value));
+    }
+}
+
+/// <summary>
+/// Поле, которое банк может прислать объектом, массивом или строкой: сохраняется как есть.
+/// </summary>
+internal sealed class TBankRawJsonJsonConverter : JsonConverter<string>
+{
+    public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return null;
+        }
+
+        if (reader.TokenType == JsonTokenType.String)
+        {
+            return reader.GetString();
+        }
+
+        using var document = JsonDocument.ParseValue(ref reader);
+        return document.RootElement.GetRawText();
+    }
+
+    public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value);
     }
 }
