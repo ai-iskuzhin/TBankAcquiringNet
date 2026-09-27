@@ -26,17 +26,61 @@ public sealed record TBankInitPaymentRequest
     /// <summary>Описание платежа.</summary>
     public string? Description { get; init; }
 
-    /// <summary>Идентификатор получателя выплаты в multisplit-сценарии.</summary>
+    /// <summary>Идентификатор получателя выплаты, до 16 символов.</summary>
+    /// <remarks>
+    /// Поле multisplit-терминала. На обычном терминале не используется; на multisplit-терминале банк
+    /// требует его в каждом <c>Init</c>.
+    /// </remarks>
     public string? PaymentRecipientId { get; init; }
 
-    /// <summary>Идентификатор сделки.</summary>
+    /// <summary>Идентификатор сделки, в которую зачисляется платёж.</summary>
+    /// <remarks>
+    /// Поле multisplit-терминала. Взаимоисключимо с <see cref="CreateDealWithType"/>: сделку либо
+    /// заводит банк по флагу, либо указывают уже существующую. Банк ждёт здесь число и отвечает
+    /// <c>934</c> «Некорректный формат идентификатора сделки» на собственный идентификатор площадки.
+    /// </remarks>
     public string? DealId { get; init; }
 
-    /// <summary>Флаг создания сделки, если DealId не передан.</summary>
+    /// <summary>Флаг создания сделки, если <see cref="DealId"/> не передан.</summary>
+    /// <remarks>
+    /// Поле multisplit-терминала. Идентификатор заведённой сделки банк возвращает не в ответе
+    /// <c>Init</c>, а в нотификации — <see cref="TBankPaymentNotification.SpAccumulationId"/>.
+    /// </remarks>
     public string? CreateDealWithType { get; init; }
 
-    /// <summary>Уровень проверки получателя выплаты.</summary>
+    /// <summary>Уровень проверки получателя выплаты: <c>low</c>, <c>moderate</c>, <c>high</c>.</summary>
+    /// <remarks>Поле multisplit-терминала.</remarks>
     public string? LevelOfConfidence { get; init; }
+
+    /// <summary>Динамический дескриптор точки.</summary>
+    /// <remarks>
+    /// Поле multisplit-терминала. Переопределяет на одну операцию то название, которое платёжная
+    /// точка показывает в SMS и в выписке плательщика.
+    /// </remarks>
+    public string? Descriptor { get; init; }
+
+    /// <summary>Флаг создания накопительной сделки.</summary>
+    /// <remarks>
+    /// Поле multisplit-терминала. Игнорируется при наличии <see cref="DealId"/>. Накопительная сделка
+    /// собирает платежи нескольких заказов, чтобы выплата ушла одна на период, а не одна на заказ, —
+    /// у банка есть предел выплат в сутки на получателя.
+    /// </remarks>
+    public string? StartSpAccumulation { get; init; }
+
+    /// <summary>Идентификатор накопительной сделки, к которой присоединяется платёж.</summary>
+    /// <remarks>
+    /// Поле multisplit-терминала. Сюда передают значение, которое банк вернул в
+    /// <see cref="TBankPaymentNotification.SpAccumulationId"/> при открытии сделки.
+    /// </remarks>
+    public string? SpAccumulationId { get; init; }
+
+    /// <summary>Идентификатор получателя выплаты в его собственных терминах, например телефон.</summary>
+    /// <remarks>Поле multisplit-терминала.</remarks>
+    public string? BasicFieldKey { get; init; }
+
+    /// <summary>Уровень проверки получателя выплаты.</summary>
+    /// <remarks>Поле multisplit-терминала.</remarks>
+    public string? Confidant { get; init; }
 
     /// <summary>Код валюты ISO 4217.</summary>
     public int? Currency { get; init; }

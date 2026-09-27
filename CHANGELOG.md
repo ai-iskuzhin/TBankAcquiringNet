@@ -8,9 +8,18 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 No changes yet.
 
-## 1.6.1
+## 1.7.0
 
 > **ОБНОВЛЕНИЕ ОБЯЗАТЕЛЬНО, если вы передаёте `RedirectDueDate`.** Отправить её правильно было нельзя ни при каком значении: целые секунды расходились с подписью, дробные отвергал банк.
+
+### Added
+
+- Поля multisplit-терминала в `TBankInitPaymentRequest`, которых не хватало против спецификации: `Descriptor`, `StartSpAccumulation`, `SpAccumulationId`, `BasicFieldKey`, `Confidant`. Накопительная сделка (`StartSpAccumulation` + `SpAccumulationId`) собирает платежи нескольких заказов, чтобы выплата уходила одна на период: у банка есть предел выплат в сутки на получателя.
+- Поля multisplit-терминала помечены как таковые в XML-документации — включая те, что были раньше (`PaymentRecipientId`, `DealId`, `CreateDealWithType`, `LevelOfConfidence`). На обычном терминале они не используются, и по описанию это теперь видно.
+
+### Notes
+
+- `DealId` банк ждёт числом и отвечает `934` «Некорректный формат идентификатора сделки» на собственный идентификатор площадки. Идентификатор заведённой сделки возвращается не в ответе `Init`, а в нотификации — `SpAccumulationId`.
 
 ### Fixed
 
