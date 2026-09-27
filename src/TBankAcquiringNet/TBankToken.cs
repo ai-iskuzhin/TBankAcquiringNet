@@ -326,15 +326,18 @@ public static class TBankToken
             return true;
         }
 
+        // Тем же форматом, которым дату пишет TBankDateTimeOffsetJsonConverter. Формат "O" давал
+        // дробные доли секунды: подпись считалась по одной записи, а в теле уезжала другая, и банк
+        // отвечал 204 «Неверный токен».
         if (value is DateTimeOffset dateTimeOffset)
         {
-            formattedValue = dateTimeOffset.ToString("O", CultureInfo.InvariantCulture);
+            formattedValue = TBankWireDates.FormatValue(dateTimeOffset);
             return true;
         }
 
         if (value is DateTime dateTime)
         {
-            formattedValue = dateTime.ToString("O", CultureInfo.InvariantCulture);
+            formattedValue = TBankWireDates.FormatValue(dateTime);
             return true;
         }
 

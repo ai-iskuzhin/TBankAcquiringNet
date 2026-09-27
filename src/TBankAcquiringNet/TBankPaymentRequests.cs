@@ -66,6 +66,7 @@ public sealed record TBankInitPaymentRequest
     public Uri? FailURL { get; init; }
 
     /// <summary>Срок жизни платежной ссылки или QR.</summary>
+    [JsonConverter(typeof(TBankDateTimeOffsetJsonConverter))]
     public DateTimeOffset? RedirectDueDate { get; init; }
 
     /// <summary>Дополнительные параметры платежа.</summary>
@@ -253,6 +254,7 @@ public sealed record TBankAddAccountQrRequest
     public IReadOnlyDictionary<string, string?>? Data { get; init; }
 
     /// <summary>Срок жизни ссылки или динамического QR.</summary>
+    [JsonConverter(typeof(TBankDateTimeOffsetJsonConverter))]
     public DateTimeOffset? RedirectDueDate { get; init; }
 
     /// <summary>Подпись запроса. Обычно генерируется клиентом автоматически.</summary>

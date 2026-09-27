@@ -253,3 +253,26 @@ internal sealed class TBankRawJsonJsonConverter : JsonConverter<string>
         writer.WriteStringValue(value);
     }
 }
+
+/// <summary>
+/// Дата и время в формате провода T-Bank, с точностью до секунды.
+/// </summary>
+/// <remarks>
+/// Пишет через <see cref="TBankWireDates"/> — тем же форматом, которым дату подписывает
+/// <see cref="TBankToken"/>. По умолчанию <c>System.Text.Json</c> отдал бы дробные доли секунды,
+/// которые банк отвергает, а подпись считалась бы по третьему варианту записи.
+/// </remarks>
+internal sealed class TBankDateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
+{
+    public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        return TBankWireDates.TryParse(reader.GetString(), out var value)
+            ? value
+            : throw new JsonException("Expected a T-Bank date/time value.");
+    }
+
+    public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(TBankWireDates.FormatValue(value));
+    }
+}
