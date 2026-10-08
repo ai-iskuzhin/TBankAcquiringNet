@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -68,6 +68,62 @@ public sealed class TBankPaymentsClient
         };
 
         return SendAsync<TBankInitPaymentRequest, TBankInitPaymentResponse>("Init", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Открывает сделку методом createSpDeal.
+    /// </summary>
+    /// <remarks>
+    /// Метод multisplit-терминала. В отличие от <c>Init</c> с
+    /// <see cref="TBankInitPaymentRequest.CreateDealWithType"/>, идентификатор сделки возвращается
+    /// сразу, в <see cref="TBankCreateSpDealResponse.SpAccumulationId"/>, а не приходит потом
+    /// нотификацией. Это то, что позволяет открыть сделку заранее и присоединять к ней платежи:
+    /// одновременно открытых сделок банк не ограничивает.
+    /// </remarks>
+    public Task<TBankCreateSpDealResponse> CreateSpDealAsync(
+        TBankCreateSpDealRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankCreateSpDealRequest, TBankCreateSpDealResponse>("createSpDeal", signedRequest, cancellationToken);
+    }
+
+    /// <summary>
+    /// Закрывает сделку методом closeSpDeal.
+    /// </summary>
+    /// <remarks>
+    /// Метод multisplit-терминала, и необратимый: остаток на балансе сделки в момент закрытия целиком
+    /// уходит площадке, включая деньги Продавцов, по которым выплата ещё не ушла. Подробнее — в
+    /// <see cref="TBankCloseSpDealRequest"/>.
+    /// </remarks>
+    public Task<TBankCloseSpDealResponse> CloseSpDealAsync(
+        TBankCloseSpDealRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var signedRequest = request with
+        {
+            TerminalKey = options.TerminalKey
+        };
+
+        signedRequest = signedRequest with
+        {
+            Token = CreateToken(signedRequest, request.Token)
+        };
+
+        return SendAsync<TBankCloseSpDealRequest, TBankCloseSpDealResponse>("closeSpDeal", signedRequest, cancellationToken);
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using TBankAcquiringNet;
 
@@ -1760,6 +1760,76 @@ public sealed class TBankPaymentsClientTests
         body.Split('&').Select(pair => pair.Split('=', 2)).ToDictionary(
             parts => Uri.UnescapeDataString(parts[0]),
             parts => Uri.UnescapeDataString(parts.Length > 1 ? parts[1] : string.Empty));
+
+    [Fact]
+    public async Task CreateSpDealAsync_PostsSignedRequestAndReadsDealId()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0",
+              "SpAccumulationId": "91954170"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TerminalKey",
+            Password = "Password",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.CreateSpDealAsync(new TBankCreateSpDealRequest());
+
+        // Регистр в пути значим: у банка метод называется createSpDeal, со строчной буквы.
+        Assert.Equal("https://example.test/v2/createSpDeal", handler.RequestUri?.ToString());
+        Assert.Equal(HttpMethod.Post, handler.Method);
+        Assert.Equal("91954170", response.SpAccumulationId);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("TerminalKey", root.GetProperty("TerminalKey").GetString());
+        // Тип проставлен по умолчанию: другого банк не принимает.
+        Assert.Equal("NN", root.GetProperty("SpDealType").GetString());
+        Assert.Equal(
+            "7fa5753df08a7118c20266321836295514d9a38f05476246c29617b0e4836655",
+            root.GetProperty("Token").GetString());
+    }
+
+    [Fact]
+    public async Task CloseSpDealAsync_PostsSignedRequestWithDealId()
+    {
+        using var handler = new RecordingHandler("""
+            {
+              "Success": true,
+              "ErrorCode": "0"
+            }
+            """);
+        using var httpClient = new HttpClient(handler);
+        var client = new TBankPaymentsClient(httpClient, new TBankPaymentsClientOptions
+        {
+            TerminalKey = "TerminalKey",
+            Password = "Password",
+            BaseAddress = new Uri("https://example.test/v2/")
+        });
+
+        var response = await client.CloseSpDealAsync(new TBankCloseSpDealRequest
+        {
+            SpAccumulationId = "91954170"
+        });
+
+        Assert.Equal("https://example.test/v2/closeSpDeal", handler.RequestUri?.ToString());
+        Assert.True(response.Success);
+
+        using var document = JsonDocument.Parse(handler.Body!);
+        var root = document.RootElement;
+
+        Assert.Equal("91954170", root.GetProperty("SpAccumulationId").GetString());
+        Assert.Equal(
+            "4badeeec190d52b4d6d5146747fb373104af0df30022198599acd4aa40a9903f",
+            root.GetProperty("Token").GetString());
+    }
 
     private sealed class RecordingHandler(string responseBody, HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
     {
