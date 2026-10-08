@@ -6,6 +6,10 @@ The project uses Semantic Versioning. Versions below `1.0.0` are preview release
 
 ## Unreleased
 
+No changes yet.
+
+## 1.8.0
+
 ### Added
 
 - Методы сделки multisplit-терминала: `TBankPaymentsClient.CreateSpDealAsync` (`createSpDeal`) и `CloseSpDealAsync` (`closeSpDeal`). Открыть сделку можно было только платежом — `Init` с `CreateDealWithType`, — но тогда её идентификатор приходит лишь в нотификации, и до неё площадка не знает, куда положила деньги. `createSpDeal` возвращает `SpAccumulationId` сразу, поэтому сделку можно открыть заранее и присоединять к ней платежи; одновременно открытых сделок банк не ограничивает.
