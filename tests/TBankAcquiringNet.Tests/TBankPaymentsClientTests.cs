@@ -1011,6 +1011,11 @@ public sealed class TBankPaymentsClientTests
         Assert.Equal("http://example.com", response.Params?.WebQR);
     }
 
+    // Эндпоинты /QR выведены банком из эксплуатации и помечены [Obsolete]: по живым
+    // платежам они отвечают 500. Методы остаются в публичном API ради совместимости, и
+    // проверки ниже всё так же стерегут форму запроса — поэтому предупреждение здесь
+    // глушится точечно, а не отключается по всему проекту.
+#pragma warning disable CS0618 // Type or member is obsolete
     [Fact]
     public async Task GetTinkoffPayQrAsync_ReturnsSvg()
     {
@@ -1076,6 +1081,7 @@ public sealed class TBankPaymentsClientTests
         Assert.Contains("Неверный статус транзакции.", exception.Message);
         Assert.Contains("Неверный статус транзакции.", exception.ResponseBodyPreview!);
     }
+#pragma warning restore CS0618
 
     [Fact]
     public async Task GetSberPayLinkAsync_GetsSberPayLinkEndpoint()

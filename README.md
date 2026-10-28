@@ -148,6 +148,46 @@ using var handler = new HttpClientHandler
 - На .NET Framework нужна версия 4.7.1 или новее: в более ранних `HttpClientHandler.ServerCertificateCustomValidationCallback` выбрасывает `PlatformNotSupportedException`.
 - Альтернатива на уровне инфраструктуры — установить корень Минцифры в системное хранилище. Тогда встроенные сертификаты не понадобятся и любой `HttpClient` будет работать.
 
+
+## QR для T‑Pay и SberPay
+
+Когда покупатель платит с компьютера, ссылку T‑Pay или SberPay надо как-то передать на телефон. Раньше картинку отдавал сам банк — методами `TinkoffPay QR` и `SberPay QR`. Эти эндпоинты выведены из эксплуатации: по корректно созданным платежам они отвечают `500` с `ErrorCode 9999` «Внутренняя ошибка системы», и из документации пропали. Банк рекомендует брать ссылку методами `/link`.
+
+Поэтому SDK рисует код сам, не обращаясь к сети:
+
+```csharp
+var link = await client.GetTinkoffPayLinkAsync(paymentId, version: "2.0");
+var url = link.Params!.RedirectUrl!;
+
+// Для вставки в разметку: <img src="@dataUri" alt="QR для оплаты">
+var dataUri = TBankQrRenderer.ToPngDataUri(url);
+
+// Либо вектор — он чётче на любом размере и весит меньше.
+var svg = TBankQrRenderer.ToSvg(url, new TBankQrRenderOptions
+{
+    EccLevel = TBankQrEccLevel.M,
+    ModuleSize = 8,
+    QuietZone = 4
+});
+```
+
+Доступны `ToSvg`, `ToPng` и к каждому пара `…Base64` / `…DataUri`.
+
+**Ссылка SberPay для QR не годится.** `GetSberPayLinkAsync` возвращает `sberpay://invoicing/v2?…` — адрес с собственной схемой, рассчитанный на нажатие на том же устройстве. Штатное приложение «Камера» такие схемы обычно не открывает, поэтому QR со ссылкой SberPay поможет не всем, и показывать его вместо кнопки не стоит. У T‑Pay `RedirectUrl` — обычный `https`, он сканируется нормально. Проверить можно заранее:
+
+```csharp
+if (TBankQrRenderer.IsLikelyScannable(url))
+{
+    ShowQr(TBankQrRenderer.ToPngDataUri(url));
+}
+else
+{
+    ShowButton(url);
+}
+```
+
+Отрисовка не тянет зависимостей: кодировщик ISO/IEC 18004 и запись PNG лежат внутри пакета. Поддержаны режимы «цифры», «буквы и цифры» и «байты» и версии 1..40; Micro QR, ECI и структурированное присоединение — нет.
+
 ## Поддерживаемые методы
 
 Покрытие методов [Эквайринг API Т‑Бизнес](https://developer.tbank.ru/eacq/api/priem-platezhei). В колонке «SDK API» указан метод клиента; «—» означает, что метод пока не реализован. Ответы (кроме SVG QR) типизированы и производны от `TBankResponse` с полями `Success`, `ErrorCode`, `Message`, `Details` (см. [Обработка ошибок](#обработка-ошибок)).
@@ -189,14 +229,14 @@ using var handler = new HttpClientHandler
 | --- | --- | --- |
 | Определить возможность проведения платежа | `GetTinkoffPayStatusAsync` | [status](https://developer.tbank.ru/eacq/api/status) |
 | Получить ссылку | `GetTinkoffPayLinkAsync` | [link](https://developer.tbank.ru/eacq/api/link) |
-| Получить QR | `GetTinkoffPayQrAsync` | [qr](https://developer.tbank.ru/eacq/api/qr) |
+| Получить QR | `GetTinkoffPayQrAsync` — устарел, см. [QR для T‑Pay и SberPay](#qr-для-t-pay-и-sberpay) | — |
 
 ### SberPay
 
 | Метод T-Bank | SDK API | Документация |
 | --- | --- | --- |
-| Получить QR | `GetSberPayQrAsync` | [sber-pay-qr](https://developer.tbank.ru/eacq/api/sber-pay-qr) |
 | Получить ссылку | `GetSberPayLinkAsync` | [sber-paylink](https://developer.tbank.ru/eacq/api/sber-paylink) |
+| Получить QR | `GetSberPayQrAsync` — устарел, см. [QR для T‑Pay и SberPay](#qr-для-t-pay-и-sberpay) | — |
 
 ### Mir Pay и Alfa Pay
 
@@ -289,7 +329,7 @@ var charge = await client.ChargeQrAsync(new TBankChargeQrRequest
 
 ## Кошельки: T‑Pay, SberPay, Mir Pay, Alfa Pay
 
-Кошельки возвращают ссылку для редиректа, deeplink или QR для уже инициированного платежа (`Init`):
+Кошельки возвращают ссылку для редиректа или deeplink для уже инициированного платежа (`Init`). QR банк больше не отдаёт — см. [QR для T‑Pay и SberPay](#qr-для-t-pay-и-sberpay):
 
 ```csharp
 // T‑Pay: проверьте доступность на терминале, затем получите ссылку
@@ -308,8 +348,9 @@ Console.WriteLine(mir.Deeplink);
 var alfa = await client.GetAlfaPayLinkAsync(new TBankAlfaPayLinkRequest { PaymentId = paymentId });
 Console.WriteLine(alfa.Params?.RedirectUrl);
 
-// SberPay: QR для десктопа возвращается строкой SVG
-string sberQr = await client.GetSberPayQrAsync(paymentId);
+// SberPay: ссылка с собственной схемой sberpay://, открывается нажатием на том же устройстве
+var sber = await client.GetSberPayLinkAsync(paymentId);
+Console.WriteLine(sber.Params?.RedirectUrl);
 ```
 
 ## Фискализация чеков

@@ -493,7 +493,17 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Возвращает SVG QR-кода T‑Pay для десктопов методом TinkoffPay QR.
     /// </summary>
-    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/t-pay/">приём платежей через T‑Pay</see>.</remarks>
+    /// <remarks>
+    /// Метод выведен из эксплуатации на стороне банка: в октябре 2026 он начал отвечать
+    /// <c>500</c> (<c>ErrorCode 9999</c>, «Внутренняя ошибка системы») по корректно созданным
+    /// платежам, а из документации пропал — в разделе T‑Pay остались только «Определить
+    /// возможность проведения платежа» и «Получить ссылку». Банк рекомендует брать ссылку
+    /// методом <see cref="GetTinkoffPayLinkAsync"/> и показывать её самостоятельно; QR по ней
+    /// рисует <see cref="TBankQrRenderer"/>, не обращаясь к сети.
+    /// </remarks>
+    [Obsolete(
+        "Банк вывел эндпоинт из эксплуатации, он отвечает 500. Возьмите ссылку "
+        + "GetTinkoffPayLinkAsync и нарисуйте код через TBankQrRenderer.ToPngBase64.")]
     public Task<string> GetTinkoffPayQrAsync(
         string paymentId,
         CancellationToken cancellationToken = default)
@@ -508,7 +518,16 @@ public sealed class TBankPaymentsClient
     /// <summary>
     /// Возвращает SVG QR-кода SberPay для десктопов методом SberPay QR.
     /// </summary>
-    /// <remarks>Сценарий: <see href="https://developer.tbank.ru/eacq/scenarios/payments/PCI_DSS/sberpay/">приём платежей через SberPay</see>.</remarks>
+    /// <remarks>
+    /// Метод выведен из эксплуатации на стороне банка — как и парный ему
+    /// <see cref="GetTinkoffPayQrAsync"/>, он отвечает <c>500</c> и отсутствует в документации.
+    /// Ссылку отдаёт <see cref="GetSberPayLinkAsync"/>. Учтите, что это <c>sberpay://…</c>:
+    /// такую схему штатная камера телефона обычно не открывает, поэтому QR с ней помогает не
+    /// всем — проверяйте через <see cref="TBankQrRenderer.IsLikelyScannable"/>.
+    /// </remarks>
+    [Obsolete(
+        "Банк вывел эндпоинт из эксплуатации, он отвечает 500. Возьмите ссылку "
+        + "GetSberPayLinkAsync; QR с deeplink-схемой сканируется не везде.")]
     public Task<string> GetSberPayQrAsync(
         string paymentId,
         CancellationToken cancellationToken = default)
